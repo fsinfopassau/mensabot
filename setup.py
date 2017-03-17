@@ -26,6 +26,7 @@ setup(
         'dateparser',
         'requests',
         'beautifulsoup4',
-        'humanize'
+        'humanize',
+        'jinja2'
     ]
 )
