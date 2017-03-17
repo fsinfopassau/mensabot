@@ -1,4 +1,5 @@
 import csv
+import functools
 import re
 import warnings
 from datetime import datetime, time
@@ -8,15 +9,11 @@ from bs4 import BeautifulSoup
 
 MENU_URL = "http://www.stwno.de/infomax/daten-extern/csv/UNI-P/"
 MENU_TYPES = ["S", "H", "B", "N"]
-MENU_TYPE_ICONS = {
-    "S": "🍵",
-    "H": "🍔",
-    "B": "🍟",
-    "N": "🍨"
-}
 
+#TODO clear caches from time to time
 
-def get_menu_week(week, icons=MENU_TYPE_ICONS):
+@functools.lru_cache
+def get_menu_week(week):
     r = requests.get("%s%s.csv" % (MENU_URL, week))
     if not r.ok:
         r = requests.get("%s%02s.csv" % (MENU_URL, week))
@@ -27,14 +24,13 @@ def get_menu_week(week, icons=MENU_TYPE_ICONS):
         row['name'] = name[0].strip()
         row['zusatz'] = name[1].rstrip(")").strip() if len(name) > 1 else ""
         row['tags'] = "/".join([row['kennz'], row['zusatz']])
-        row['icon'] = icons[row["warengruppe"][0]]
         del row['tag']
         del row['preis']
         yield row
 
 
-def get_menu_day(dt=datetime.now(), icons=MENU_TYPE_ICONS):
-    return sorted([d for d in get_menu_week(dt.date().isocalendar()[1], icons) if d['datum'] == dt.date()],
+def get_menu_day(dt=datetime.now()):
+    return sorted([d for d in get_menu_week(dt.date().isocalendar()[1]) if d['datum'] == dt.date()],
                   key=lambda d: (MENU_TYPES.index(d["warengruppe"][0]), d["warengruppe"]))
 
 
@@ -44,8 +40,8 @@ OPENING_TIMEFRAME_HOLIDAY = {"vorlesungszeit": False, "vorlesungsfreie zeit": Tr
 NOT_OPEN = (time(0, 0),) * 2
 
 
+@functools.lru_cache(maxsize=16)
 def get_opening_times(loc):
-    # TODO list possible URLs
     r = requests.get(OPENING_URL + loc)
     r.raise_for_status()
     soup = BeautifulSoup(r.text, 'html.parser')
@@ -102,6 +98,13 @@ DATES_HOLIDAY = {"Vorlesungsbeginn": True, "Vorlesungsende": False}
 
 
 def is_holiday(dt=datetime.now()):
+    next_date = next((t, d) for t, d in get_semester_dates() if d >= dt.date())
+    is_holiday = DATES_HOLIDAY[next_date[0]]
+    return is_holiday
+
+
+@functools.lru_cache(maxsize=1)
+def get_semester_dates():
     # TODO use http://www.uni-passau.de/studium/waehrend-des-studiums/semesterterminplan/vorlesungszeiten/ instead
     r = requests.get(DATES_URL)
     r.raise_for_status()
@@ -109,6 +112,4 @@ def is_holiday(dt=datetime.now()):
     dates = [(elem.text, datetime.strptime(elem.find_previous_sibling("td").text, "%d.%m.%Y").date()) for elem in
              soup.find_all("td", text=re.compile("^Vorlesungs(beginn|ende)"))]
     dates.sort(key=lambda e: e[1])
-    next_date = next((t, d) for t, d in dates if d >= dt.date())
-    is_holiday = DATES_HOLIDAY[next_date[0]]
-    return is_holiday
+    return dates
