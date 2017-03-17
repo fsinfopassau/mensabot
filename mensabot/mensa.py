@@ -2,7 +2,9 @@ import csv
 import functools
 import re
 import warnings
-from datetime import datetime, time
+from collections import namedtuple
+from datetime import date, datetime, time
+from typing import Dict, List, Tuple
 
 import requests
 from bs4 import BeautifulSoup
@@ -10,8 +12,18 @@ from bs4 import BeautifulSoup
 MENU_URL = "http://www.stwno.de/infomax/daten-extern/csv/UNI-P/"
 MENU_TYPES = ["S", "H", "B", "N"]
 
-@functools.lru_cache
-def get_menu_week(week):
+dish = namedtuple("dish", ["datum", "name", "warengruppe", "kennz", "zusatz", "stud", "bed", "gast"])
+
+
+@functools.lru_cache()
+def get_menu_week(week: int) -> List[dish]:
+    """
+    Get all dishes for a certain week from the stwno website.
+
+    :param week: the iso number of the week
+    :return: a list of dishes
+    """
+
     r = requests.get("%s%s.csv" % (MENU_URL, week))
     if not r.ok:
         r = requests.get("%s%02s.csv" % (MENU_URL, week))
@@ -21,15 +33,22 @@ def get_menu_week(week):
         name = re.split("\(", row['name'], 1)
         row['name'] = name[0].strip()
         row['zusatz'] = name[1].rstrip(")").strip() if len(name) > 1 else ""
-        row['tags'] = "/".join([row['kennz'], row['zusatz']])
+        # row['tags'] = "/".join([row['kennz'], row['zusatz']])
         del row['tag']
         del row['preis']
-        yield row
+        yield dish(**row)
 
 
-def get_menu_day(dt=datetime.now()):
-    return sorted([d for d in get_menu_week(dt.date().isocalendar()[1]) if d['datum'] == dt.date()],
-                  key=lambda d: (MENU_TYPES.index(d["warengruppe"][0]), d["warengruppe"]))
+def get_menu_day(dt: datetime = datetime.now()) -> List[dish]:
+    """
+    Get all dishes for a certain day from the stwno website, sorted by their type.
+
+    :param dt: the date(-time)
+    :return: a list of dishes
+    """
+
+    return sorted([d for d in get_menu_week(dt.date().isocalendar()[1]) if d.datum == dt.date()],
+                  key=lambda d: (MENU_TYPES.index(d.warengruppe[0]), d.warengruppe))
 
 
 OPENING_URL = "https://stwno.de/de/gastronomie/"
@@ -46,7 +65,14 @@ NOT_OPEN = (time(0, 0),) * 2
 
 
 @functools.lru_cache(maxsize=16)
-def get_opening_times(loc):
+def get_opening_times(loc: str) -> Dict[Tuple[bool, int], Tuple[time, time]]:
+    """
+    Return the opening times for a certain location.
+
+    :param loc: the location, indicated by it's URL part
+    :return: a dict, mapping from the tuple (is during holidays, iso week day) to (opening time, closing time)
+    """
+
     r = requests.get(OPENING_URL + loc)
     r.raise_for_status()
     soup = BeautifulSoup(r.text, 'html.parser')
@@ -102,14 +128,23 @@ DATES_URL = "http://www.uni-passau.de/studium/waehrend-des-studiums/semesterterm
 DATES_HOLIDAY = {"Vorlesungsbeginn": True, "Vorlesungsende": False}
 
 
-def is_holiday(dt=datetime.now()):
+def is_holiday(dt: datetime = datetime.now()) -> bool:
+    """
+    Check whether a certain date is during the holidays, the so called "vorlesungsfreie Zeit".
+    """
+
     next_date = next((t, d) for t, d in get_semester_dates() if d >= dt.date())
     is_holiday = DATES_HOLIDAY[next_date[0]]
     return is_holiday
 
 
 @functools.lru_cache(maxsize=1)
-def get_semester_dates():
+def get_semester_dates() -> List[Tuple[str, date]]:
+    """
+    Get a list of the dates of start and end of lecture as a list of Tuples with either
+    "Vorlesungsbeginn" or "Vorlesungsende" and the respective date.
+    """
+
     r = requests.get(DATES_URL)
     r.raise_for_status()
     soup = BeautifulSoup(r.text, 'html.parser')
