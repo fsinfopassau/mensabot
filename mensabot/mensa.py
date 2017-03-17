@@ -3,7 +3,7 @@ import functools
 import re
 import warnings
 from collections import Counter
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 from typing import Dict, List, NamedTuple, Tuple
 
 import requests
@@ -138,6 +138,34 @@ def get_opening_times(loc: str) -> Dict[Tuple[bool, int], Tuple[time, time]]:
             dates[(holidays, day)] = (open, close)
 
     return dates
+
+
+open_info = NamedTuple("open_info", [("open", time), ("close", time), ("day", datetime), ("offset", int)])
+
+
+def get_next_open(dt: datetime, loc: str) -> open_info:
+    """
+    Check when the given location is open the next time.
+
+    :return: An open_info with offset = 0 if the location is open today, otherwise open_info showing the next open date.
+        If the location is not open in the foreseeable future, None is returned.
+    """
+
+    times = get_opening_times(loc)
+    days = [(i, dt + timedelta(days=i)) for i in range(6)]
+    for open, close, offset, day in (times[(is_holiday(d), d.isoweekday() - 1)] + (i, d) for i, d in days):
+        # print("{} {:%a %Y-%m-%d} {:%H:%M} {:%H:%M}".format(offset, day, open, close))
+        if offset == 0:
+            if dt.time() < close:
+                return open_info(open, close, day, offset)  # still open today
+            else:
+                pass  # closed for today, search for the next open date
+        elif open > time(0, 0):
+            return open_info(open, close, day, offset)  # found next open day
+        else:
+            pass  # continue searching for the next open date
+
+    return None  # not open in the foreseeable future
 
 
 DATES_URL = "http://www.uni-passau.de/studium/waehrend-des-studiums/semesterterminplan/"
