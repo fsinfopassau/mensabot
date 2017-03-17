@@ -2,9 +2,9 @@ import csv
 import functools
 import re
 import warnings
-from collections import namedtuple
+from collections import Counter
 from datetime import date, datetime, time
-from typing import Dict, List, Tuple
+from typing import Dict, List, NamedTuple, Tuple
 
 import requests
 from bs4 import BeautifulSoup
@@ -12,7 +12,16 @@ from bs4 import BeautifulSoup
 MENU_URL = "http://www.stwno.de/infomax/daten-extern/csv/UNI-P/"
 MENU_TYPES = ["S", "H", "B", "N"]
 
-dish = namedtuple("dish", ["datum", "name", "warengruppe", "kennz", "zusatz", "stud", "bed", "gast"])
+dish = NamedTuple("dish", [
+    ("datum", datetime),
+    ("name", str),
+    ("warengruppe", str),
+    ("kennz", Counter),
+    ("zusatz", Counter),
+    ("stud", float),
+    ("bed", float),
+    ("gast", float)
+])
 
 
 @functools.lru_cache()
@@ -28,15 +37,22 @@ def get_menu_week(week: int) -> List[dish]:
     if not r.ok:
         r = requests.get("%s%02s.csv" % (MENU_URL, week))
     r.raise_for_status()
+    dishes = []
     for row in csv.DictReader(r.text.splitlines(), delimiter=';'):
         row['datum'] = datetime.strptime(row['datum'], "%d.%m.%Y").date()
         name = re.split("\(", row['name'], 1)
         row['name'] = name[0].strip()
-        row['zusatz'] = name[1].rstrip(")").strip() if len(name) > 1 else ""
+        row['kennz'] = Counter(row['kennz'].split(","))
+        row['zusatz'] = Counter((name[1].rstrip(")").strip() if len(name) > 1 else "").split(","))
         # row['tags'] = "/".join([row['kennz'], row['zusatz']])
+        row["stud"] = float(row["stud"].replace(",", "."))
+        row["bed"] = float(row["bed"].replace(",", "."))
+        row["gast"] = float(row["gast"].replace(",", "."))
         del row['tag']
         del row['preis']
-        yield dish(**row)
+        dishes.append(dish(**row))
+
+    return dishes
 
 
 def get_menu_day(dt: datetime = datetime.now()) -> List[dish]:
