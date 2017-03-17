@@ -10,8 +10,6 @@ from bs4 import BeautifulSoup
 MENU_URL = "http://www.stwno.de/infomax/daten-extern/csv/UNI-P/"
 MENU_TYPES = ["S", "H", "B", "N"]
 
-#TODO clear caches from time to time
-
 @functools.lru_cache
 def get_menu_week(week):
     r = requests.get("%s%s.csv" % (MENU_URL, week))
@@ -37,6 +35,13 @@ def get_menu_day(dt=datetime.now()):
 OPENING_URL = "https://stwno.de/de/gastronomie/"
 OPENING_DAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
 OPENING_TIMEFRAME_HOLIDAY = {"vorlesungszeit": False, "vorlesungsfreie zeit": True}
+LOCATIONS = {
+    "audimax": "cafeterien/cafeteria-uni-pa-audimax",
+    "mensacafete": "cafeterien/cafeteria-uni-pa-mensagebaeude",
+    "nikolakloster": "cafeterien/cafeteria-uni-pa-nikolakloster",
+    "wiwi": "cafeterien/cafebar-uni-pa-wiwi",
+    "mensaessen": "mensen/mensa-uni-passau"
+}
 NOT_OPEN = (time(0, 0),) * 2
 
 
@@ -105,7 +110,6 @@ def is_holiday(dt=datetime.now()):
 
 @functools.lru_cache(maxsize=1)
 def get_semester_dates():
-    # TODO use http://www.uni-passau.de/studium/waehrend-des-studiums/semesterterminplan/vorlesungszeiten/ instead
     r = requests.get(DATES_URL)
     r.raise_for_status()
     soup = BeautifulSoup(r.text, 'html.parser')
