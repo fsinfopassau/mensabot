@@ -1,0 +1,16 @@
+- Telegram Bot
+    - let users register for automatic menu notification at a certain time
+    - personalize localisation, filter dishes, ... -> Jinja2 templates?
+    - `/cafete`
+        - handle edge-case location "mensaessen" -> rename to "open"?
+        - handle dates containing spaces
+        - move parsing of argumentss to formatter?
+- Formatter
+    - internationalize strings
+    - [update for humanize for german support](https://github.com/jmoiron/humanize/tree/master/humanize/locale/de_DE/LC_MESSAGES)
+    - better formatting of dates (e.g. "Today, Monday, April 1st" or "Heute, Montag, 1. April")
+    - fuzzy parsing of location
+- Mensa API
+    - use [better website]( use http://www.uni-passau.de/studium/waehrend-des-studiums/semesterterminplan/vorlesungszeiten/)
+        for `get_semester_dates`
+    - clear caches from time to time
