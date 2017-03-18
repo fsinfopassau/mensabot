@@ -1,4 +1,7 @@
+import random
+
 import dateparser
+from babel.dates import format_date, format_time
 from jinja2 import PackageLoader
 from jinja2.sandbox import SandboxedEnvironment
 
@@ -56,15 +59,18 @@ JINJA2_ENV.filters["kennz_not"] = filter_kennz_not
 JINJA2_ENV.filters["zusatz"] = filter_zusatz
 JINJA2_ENV.filters["zusatz_not"] = filter_zusatz_not
 JINJA2_ENV.filters["ketchup"] = filter_ketchup
+JINJA2_ENV.filters["format_date"] = format_date
+JINJA2_ENV.filters["format_time"] = format_time
 
 schedule = NamedTuple("schedule", [("open", time), ("close", time), ("day", datetime)])
 
 
-def get_mensa_formatted(dt):
-    return JINJA2_ENV.get_template("menu.md").render({"menu": get_menu_day(dt), "date": dt, "now": datetime.now()})
+def get_mensa_formatted(dt, locale=LANG[0]):
+    return JINJA2_ENV.get_template(locale + "/menu.md").render(
+        {"menu": get_menu_day(dt), "date": dt, "now": datetime.now(), "locale": locale})
 
 
-def get_open_formatted(loc, dt):
+def get_open_formatted(loc, dt, locale=LANG[0]):
     # next open date
     open_info = get_next_open(dt, LOCATIONS[loc])
 
@@ -72,9 +78,9 @@ def get_open_formatted(loc, dt):
     sched = [schedule(*get_opening_times(LOCATIONS[loc])[(is_holiday(day), day.isoweekday() - 1)], day=day)
              for day in [dt + timedelta(days=i - dt.weekday()) for i in range(7)]]
 
-    return JINJA2_ENV.get_template("open.md").render(
+    return JINJA2_ENV.get_template(locale + "/open.md").render(
         {"open_info": open_info, "schedule": sched, "date": dt, "loc": loc, "NOT_OPEN": NOT_OPEN,
-         "now": datetime.now()})
+         "now": datetime.now(), "locale": locale})
 
 
 def get_abbr():
@@ -96,7 +102,7 @@ def parse_loc_date(s):
 
 
 def parse_loc(s):
-    if not s:
+    if not s or s == ['']:
         return None
     if not isinstance(s, str):
         s = " ".join(s)
@@ -117,7 +123,7 @@ def parse_loc(s):
 
 
 def parse_date(s):
-    if not s:
+    if not s or s == ['']:
         return None
     if not isinstance(s, str):
         s = " ".join(s)

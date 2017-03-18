@@ -1,10 +1,9 @@
 - Telegram Bot
     - let users register for automatic menu notification at a certain time
     - lookup abbreviations regarding marked ingredients
+    - let users choose template/locale
     - `/cafete`
         - handle edge-case location "mensaessen" -> rename to "open"?
-- Formatter
-    - internationalize strings, personalize templates
 - Mensa API
     - use [better website](http://www.uni-passau.de/studium/waehrend-des-studiums/semesterterminplan/vorlesungszeiten/)
         for `get_semester_dates`
