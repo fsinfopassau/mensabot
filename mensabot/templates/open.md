@@ -1,3 +1,4 @@
+{% import 'utils.md' as utils %}
 Cafete {{ loc }} 
 {%- if not open_info %}
  closed in this timeframe
@@ -6,7 +7,7 @@ Cafete {{ loc }}
 {% elif open_info.offset == 0 %}
  open until {{ open_info.close }}
 {% else %}
- closed, opens in {{ open_info.offset }} days at {{ open_info.open }}
+ closed, opens {{ utils.date(open_info.day, now) }} at {{ open_info.open }}
 {% endif %}
 ```text
 {% for row in schedule -%}

@@ -5,10 +5,6 @@
         - handle edge-case location "mensaessen" -> rename to "open"?
         - handle dates containing spaces
 - Formatter
-    - [update for humanize for german support](https://github.com/jmoiron/humanize/tree/master/humanize/locale/de_DE/LC_MESSAGES)
-    - better formatting of dates (e.g. "Today, Monday, April 1st" or "Heute, Montag, 1. April")
-    - add day of week to "opens in 3 days at 08:00:00"
-- both Bot and Formatter
     - move parsing of arguments to formatter?
     - internationalize strings, personalize templates
     - fuzzy parsing of location
@@ -16,3 +12,5 @@
     - use [better website](http://www.uni-passau.de/studium/waehrend-des-studiums/semesterterminplan/vorlesungszeiten/)
         for `get_semester_dates`
     - clear caches from time to time
+    - add nikolakloster menu
+    - add menu from other locations? -> set default location

@@ -26,7 +26,6 @@ setup(
         'dateparser',
         'requests',
         'beautifulsoup4',
-        'humanize',
         'jinja2',
         'regex'
     ]

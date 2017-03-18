@@ -1,12 +1,9 @@
-import humanize
 from jinja2 import PackageLoader
 from jinja2.sandbox import SandboxedEnvironment
 
 from mensabot.mensa import *
 
 LANG = ['de', 'en']
-humanize.i18n.activate(LANG[0])
-
 DATEPARSER_SETTINGS = {'PREFER_DATES_FROM': 'future'}
 
 JINJA2_ENV = SandboxedEnvironment(
@@ -55,7 +52,7 @@ schedule = NamedTuple("schedule", [("open", time), ("close", time), ("day", date
 
 
 def get_mensa_formatted(dt):
-    return JINJA2_ENV.get_template("menu.md").render({"menu": get_menu_day(dt), "date": dt})
+    return JINJA2_ENV.get_template("menu.md").render({"menu": get_menu_day(dt), "date": dt, "now": datetime.now()})
 
 
 def get_open_formatted(loc, dt):
@@ -67,7 +64,9 @@ def get_open_formatted(loc, dt):
              for day in [dt + timedelta(days=i - dt.weekday()) for i in range(7)]]
 
     return JINJA2_ENV.get_template("open.md").render(
-        {"open_info": open_info, "schedule": sched, "date": dt, "loc": loc, "NOT_OPEN": NOT_OPEN})
+        {"open_info": open_info, "schedule": sched, "date": dt, "loc": loc, "NOT_OPEN": NOT_OPEN,
+         "now": datetime.now()})
+
 
 def get_abbr():
     return JINJA2_ENV.get_template("abbr.md").render()
