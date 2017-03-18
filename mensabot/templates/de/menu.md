@@ -4,8 +4,8 @@
 Speisekarte für Mittagsmensa {{ utils.date(date, now, locale) }}:
 
 {% endif %}
-{{ utils.icon(dish.warengruppe[0]) }} {{ dish.name }}
-`>{{ "%7s" |format(dish.kennz.keys()|join(",")) }} {{ "%1.2f€"|format(dish.stud) }} {{ dish.zusatz.keys()|join(",") }}`
+{{ utils.icon_dish(dish.warengruppe[0]) }} *{{ dish.name }}*
+        {{ "%1.2f€"|format(dish.stud) }} _{{ utils.icons_kennz(dish.kennz) }} {{ dish.zusatz.keys()|join(",") }}_
 {% else %}
 Kein Speiseplan für {{ utils.date(date, now, locale) }} verfügbar!
 {% endfor %}

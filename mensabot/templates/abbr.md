@@ -51,15 +51,15 @@
 `P ` Nitritpökelsalz
 
 *Erläuterung*
-`G ` Geflügel
-`S ` Schweinefleisch
-`R ` Rindfleisch
-`L ` Lamm
-`W ` Wild
-`F ` Fisch
-`A ` Alkohol
-`V ` Vegetarisch
-`VG` Vegan
-`MV` Mensa Vital
-`B ` Bio-Gericht
-`A ` Aktionsgericht
+`G ` 🐓 Geflügel
+`S ` 🐖 Schweinefleisch
+`R ` 🐄 Rindfleisch
+`L ` 🐑 Lamm
+`W ` 🐗 Wild
+`F ` 🐟 Fisch
+`A ` 🍷 Alkohol
+`V ` 🥚 Vegetarisch
+`VG` 🌱 Vegan
+`MV` 🏃 Mensa Vital
+`B ` 🌻 Bio-Gericht
+`A ` ⭐ Aktionsgericht
