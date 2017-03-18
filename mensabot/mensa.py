@@ -119,6 +119,18 @@ def get_menu_day(dt: datetime = datetime.now()) -> List[dish]:
                   key=lambda d: (MENU_TYPES.index(d.warengruppe[0]), d.warengruppe))
 
 
+def get_next_menu_date(dt: datetime = datetime.now()) -> datetime:
+    """
+    Find the next date where the mensa is open and has a menu available.
+    """
+
+    for i in range(32):
+        if get_menu_day(dt):
+            return dt
+        dt += timedelta(days=1)
+    raise ValueError("Mensa not open within the next month.")
+
+
 OPENING_URL = "https://stwno.de/de/gastronomie/"
 OPENING_DAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
 OPENING_TIMEFRAME_HOLIDAY = {"vorlesungszeit": False, "vorlesungsfreie zeit": True}

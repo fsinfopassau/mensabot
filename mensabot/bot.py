@@ -8,7 +8,7 @@ import telegram
 from telegram.ext import CommandHandler, Updater
 
 from mensabot.config import TELEGRAM_TOKEN
-from mensabot.format import LOCATIONS, get_abbr, get_mensa_formatted, get_open_formatted, \
+from mensabot.format import LOCATIONS, get_abbr, get_mensa_formatted, get_next_menu_date, get_open_formatted, \
     parse_loc_date
 
 MARKDOWN = telegram.ParseMode.MARKDOWN
@@ -54,6 +54,7 @@ def mensa(bot, update):
             dt = datetime.now()
             if dt.hour > 15:
                 dt += timedelta(days=1)
+            dt = get_next_menu_date(dt)
         if loc:
             raise ValueError("Currently, only default location is supported")
     except ValueError as e:
@@ -93,7 +94,8 @@ def version(bot, update):
     pkg_data = pkg_resources.require("mensabot")[0]
     git_rev = subprocess.check_output(["git", "describe", "--always"]).decode('ascii').strip()
     bot.sendMessage(chat_id=update.message.chat_id,
-                    text="{} {} {}".format(pkg_data.project_name.title(), pkg_data.version, git_rev), parse_mode=MARKDOWN)
+                    text="{} {} {}".format(pkg_data.project_name.title(), pkg_data.version, git_rev),
+                    parse_mode=MARKDOWN)
 
 
 def main():
