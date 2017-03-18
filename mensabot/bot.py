@@ -86,6 +86,10 @@ def abbr(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text=get_abbr(), parse_mode=MARKDOWN)
 
 
-updater.start_polling()
+def main():
+    updater.start_polling()
+    print("Listening...")
 
-print("Listening...")
+
+if __name__ == "__main__":
+    main()

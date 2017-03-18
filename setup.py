@@ -21,12 +21,19 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.5',
     ],
+    entry_points={
+        "console_scripts": [
+            "mensabot = mensabot.bot:main"
+        ]
+    },
     packages=find_packages(),
     install_requires=[
         'dateparser',
         'requests',
         'beautifulsoup4',
         'jinja2',
-        'regex'
+        'regex',
+        'babel',
+        'python-telegram-bot'
     ]
 )
