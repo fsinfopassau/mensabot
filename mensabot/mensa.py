@@ -1,16 +1,32 @@
 import csv
 import functools
-import re
 import warnings
 from collections import Counter
 from datetime import date, datetime, time, timedelta
 from typing import Dict, List, NamedTuple, Tuple
 
+import regex as re
 import requests
 from bs4 import BeautifulSoup
 
 MENU_URL = "http://www.stwno.de/infomax/daten-extern/csv/UNI-P/"
 MENU_TYPES = ["S", "H", "B", "N"]
+
+# The name of the dish, e.g. "Bohnen - Gemüse - Ragout mit Sojasprossen, Erdnüssen"
+MENU_DISH_NAME = "([\p{L}0-9\- .,]+?)"
+# Optional additional information about the ingredients, e.g. " (3,8,9,16,A,C,G,J,AA)"
+MENU_DISH_ZUSATZ = "( ?\(+([A-Z0-9,]+)\)+)?"
+# Sometimes, part of the 'kennz' is integrated in the name, e.g. in "Mediterran Wedges*V (3,8,A)"
+MENU_DISH_KENNZ = "( ?[,*] ?([A-Z/]+))?"
+# The pattern for a normal dish
+MENU_DISH_PATTERN = \
+    re.compile("{name}{kennz}{zusatz}".format(name=MENU_DISH_NAME, kennz=MENU_DISH_KENNZ, zusatz=MENU_DISH_ZUSATZ))
+# Sometimes, additional info is given for each ingredient, e.g in "Chilli con Soja (VG) mit Baguette(V) (3,A,F,I)"
+MENU_DISH_PATTERN_MIT = \
+    re.compile("{name}{zusatz}( mit )?{name}{zusatz}{zusatz}".format(name=MENU_DISH_NAME, zusatz=MENU_DISH_ZUSATZ))
+
+ZUSATZ_NONE = Counter()
+ZUSATZ_INVALID = Counter(["??"])
 
 dish = NamedTuple("dish", [
     ("datum", datetime),
@@ -37,22 +53,58 @@ def get_menu_week(week: int) -> List[dish]:
     if not r.ok:
         r = requests.get("%s%02s.csv" % (MENU_URL, week))
     r.raise_for_status()
-    dishes = []
-    for row in csv.DictReader(r.text.splitlines(), delimiter=';'):
-        row['datum'] = datetime.strptime(row['datum'], "%d.%m.%Y").date()
-        name = re.split("\(", row['name'], 1)
-        row['name'] = name[0].strip()
-        row['kennz'] = Counter(row['kennz'].split(","))
-        row['zusatz'] = Counter((name[1].rstrip(")").strip() if len(name) > 1 else "").split(","))
-        # row['tags'] = "/".join([row['kennz'], row['zusatz']])
-        row["stud"] = float(row["stud"].replace(",", "."))
-        row["bed"] = float(row["bed"].replace(",", "."))
-        row["gast"] = float(row["gast"].replace(",", "."))
-        del row['tag']
-        del row['preis']
-        dishes.append(dish(**row))
+    return [parse_dish(row) for row in csv.DictReader(r.text.splitlines(), delimiter=';')]
 
-    return dishes
+
+def parse_dish(row: dict, debug=False) -> dish:
+    """
+    Parse a row from the csv file as dish, trying to extract further information from the name.
+    """
+
+    row['datum'] = datetime.strptime(row['datum'], "%d.%m.%Y").date()
+    row['zusatz'] = ZUSATZ_NONE
+    row['kennz'] = Counter(row['kennz'].split(",") if row['kennz'] else [])
+    row["stud"] = float(row["stud"].replace(",", "."))
+    row["bed"] = float(row["bed"].replace(",", "."))
+    row["gast"] = float(row["gast"].replace(",", "."))
+    del row['tag']
+    del row['preis']
+
+    orig_name = row["name"]
+    matcher = "unparseable"
+
+    match = MENU_DISH_PATTERN.fullmatch(row['name'])
+    if match:
+        # Bio Basmatireis
+        matcher = "normal"
+        row['name'] = match.group(1)
+        if match.group(3):
+            # Puten - Dönerteller * G (5,16,A,G,J,K) | Brühe mit Tiroler Suppenknödel,S (2,3,A,C,G,I,AA,P)
+            matcher = "stern"
+            row['kennz'] += Counter(match.group(3).split("/"))
+        if match.group(5):
+            # Bohnen - Gemüse - Ragout mit Sojasprossen, Erdnüssen (3,F,I)
+            row['zusatz'] = Counter(match.group(5).split(","))
+    else:
+        match = MENU_DISH_PATTERN_MIT.fullmatch(row['name'])
+        if match:
+            # Chilli con Soja (VG) mit Baguette(V) (3,A,F,I)
+            matcher = "mit"
+            row['name'] = "{} mit {}".format(match.group(1), match.group(5))
+            row['zusatz'] = Counter(match.group(3).split(",") + match.group(7).split(",") +
+                                    (match.group(9).split(",") if match.group(9) else []))
+        elif "salat" in row['name'].lower():
+            # Salatmix IValsamico Dressing (1,5,16)Bunter Gemüsesalatlaukraut-Apfelrohkost (16)Salatsauce Kräuter (C,G)
+            matcher = "unparseable-salat"
+            row['name'] = "Salatmix ??"
+        else:
+            warnings.warn("Dish has invalid name '{}'".format(row['name']))
+            row['zusatz'] = ZUSATZ_INVALID
+
+    if debug:
+        return dish(**row), orig_name, matcher
+    else:
+        return dish(**row)
 
 
 def get_menu_day(dt: datetime = datetime.now()) -> List[dish]:

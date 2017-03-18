@@ -27,6 +27,7 @@ setup(
         'requests',
         'beautifulsoup4',
         'humanize',
-        'jinja2'
+        'jinja2',
+        'regex'
     ]
 )
