@@ -3,11 +3,8 @@
     - lookup abbreviations regarding marked ingredients
     - `/cafete`
         - handle edge-case location "mensaessen" -> rename to "open"?
-        - handle dates containing spaces
 - Formatter
-    - move parsing of arguments to formatter?
     - internationalize strings, personalize templates
-    - fuzzy parsing of location
 - Mensa API
     - use [better website](http://www.uni-passau.de/studium/waehrend-des-studiums/semesterterminplan/vorlesungszeiten/)
         for `get_semester_dates`

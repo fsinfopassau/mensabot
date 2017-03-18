@@ -122,13 +122,6 @@ def get_menu_day(dt: datetime = datetime.now()) -> List[dish]:
 OPENING_URL = "https://stwno.de/de/gastronomie/"
 OPENING_DAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
 OPENING_TIMEFRAME_HOLIDAY = {"vorlesungszeit": False, "vorlesungsfreie zeit": True}
-LOCATIONS = {
-    "audimax": "cafeterien/cafeteria-uni-pa-audimax",
-    "mensacafete": "cafeterien/cafeteria-uni-pa-mensagebaeude",
-    "nikolakloster": "cafeterien/cafeteria-uni-pa-nikolakloster",
-    "wiwi": "cafeterien/cafebar-uni-pa-wiwi",
-    "mensaessen": "mensen/mensa-uni-passau"
-}
 NOT_OPEN = (time(0, 0),) * 2
 
 

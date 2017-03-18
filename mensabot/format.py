@@ -1,3 +1,4 @@
+import dateparser
 from jinja2 import PackageLoader
 from jinja2.sandbox import SandboxedEnvironment
 
@@ -11,7 +12,15 @@ JINJA2_ENV = SandboxedEnvironment(
     trim_blocks=True, lstrip_blocks=True, auto_reload=True
 )
 
-KETCHUP = ["kartoffel", "potato", "pommes", "twister", "kroketten", "rösti", "schnitzel", "curry", "cordon"]
+KETCHUP = ["kartoffel", "potato", "pommes", "twister", "kroketten", "rösti", "schnitzel", "cordon"]
+
+LOCATIONS = {
+    "audimax": "cafeterien/cafeteria-uni-pa-audimax",
+    "mensacafete": "cafeterien/cafeteria-uni-pa-mensagebaeude",
+    "nikolakloster": "cafeterien/cafeteria-uni-pa-nikolakloster",
+    "wiwi": "cafeterien/cafebar-uni-pa-wiwi",
+    "mensaessen": "mensen/mensa-uni-passau"
+}
 
 
 def filter_kennz(list: List[dish], kennz):
@@ -57,10 +66,10 @@ def get_mensa_formatted(dt):
 
 def get_open_formatted(loc, dt):
     # next open date
-    open_info = get_next_open(dt, loc)
+    open_info = get_next_open(dt, LOCATIONS[loc])
 
     # schedule for the current week
-    sched = [schedule(*get_opening_times(loc)[(is_holiday(day), day.isoweekday() - 1)], day=day)
+    sched = [schedule(*get_opening_times(LOCATIONS[loc])[(is_holiday(day), day.isoweekday() - 1)], day=day)
              for day in [dt + timedelta(days=i - dt.weekday()) for i in range(7)]]
 
     return JINJA2_ENV.get_template("open.md").render(
@@ -70,3 +79,50 @@ def get_open_formatted(loc, dt):
 
 def get_abbr():
     return JINJA2_ENV.get_template("abbr.md").render()
+
+
+def parse_loc_date(s):
+    tokens = s.split(" ")
+    # check whether location is first word
+    loc = parse_loc(tokens[0])
+    if loc:
+        return loc, parse_date(tokens[1:])
+    # or last word
+    loc = parse_loc(tokens[-1])
+    if loc:
+        return loc, parse_date(tokens[:-1])
+    # otherwise, it's probably only a date
+    return None, parse_date(tokens)
+
+
+def parse_loc(s):
+    if not s:
+        return None
+    if not isinstance(s, str):
+        s = " ".join(s)
+    s = s.lower()
+
+    if s == "am" or s.startswith("audi"):
+        return "audimax"
+    elif s in ["m", "mc", "mensa"] or s.startswith("mensac"):
+        return "mensacafete"
+    elif s == "nk" or s.startswith("niko"):
+        return "nikolakloster"
+    elif s in ["w", "wi", "ww", "wiwi"]:
+        return "wiwi"
+    elif s == "essen" or s.startswith("mensae"):
+        return "mensaessen"
+
+    return None
+
+
+def parse_date(s):
+    if not s:
+        return None
+    if not isinstance(s, str):
+        s = " ".join(s)
+
+    v = dateparser.parse(s, languages=LANG, settings=DATEPARSER_SETTINGS)
+    if not v:
+        raise ValueError("Could not parse date '%s'" % s)
+    return v

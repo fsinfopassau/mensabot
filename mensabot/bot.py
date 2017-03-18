@@ -1,13 +1,13 @@
 import logging
 import traceback
-from datetime import datetime
+from datetime import datetime, timedelta
 
-import dateparser
 import telegram
 from telegram.ext import CommandHandler, Updater
 
 from mensabot.config import TELEGRAM_TOKEN
-from mensabot.format import DATEPARSER_SETTINGS, LANG, LOCATIONS, get_abbr, get_mensa_formatted, get_open_formatted
+from mensabot.format import LOCATIONS, get_abbr, get_mensa_formatted, get_open_formatted, \
+    parse_loc_date
 
 MARKDOWN = telegram.ParseMode.MARKDOWN
 
@@ -46,39 +46,39 @@ def start(bot, update):
 @ComHandlerFunc("mensa")
 def mensa(bot, update):
     arg = update.message.text.replace("/mensa", "").strip()
-    date = dateparser.parse(arg if arg else ("tomorrow" if datetime.now().hour > 15 else "today"),
-                            languages=LANG, settings=DATEPARSER_SETTINGS)
-    if not date:
+    try:
+        loc, dt = parse_loc_date(arg)
+        if not dt:
+            dt = datetime.now()
+            if dt.hour > 15:
+                dt += timedelta(days=1)
+        if loc:
+            raise ValueError("Currently, only default location is supported")
+    except ValueError as e:
         bot.sendMessage(chat_id=update.message.chat_id,
-                        text="Could not parse date '%s'. Try 'today', 'tomorrow', 'Friday' or a date." % arg)
-    else:
-        bot.sendMessage(chat_id=update.message.chat_id, text=get_mensa_formatted(date), parse_mode=MARKDOWN)
+                        text="%s. Try 'today', 'tomorrow', 'Friday' or a date." % e)
+        return
+
+    bot.sendMessage(chat_id=update.message.chat_id, text=get_mensa_formatted(dt), parse_mode=MARKDOWN)
 
 
 @ComHandlerFunc("cafete")
 def cafete(bot, update):
-    args = update.message.text.strip().split(" ")
-    date, loc = None, None
-    args = ["today", "mensacafete"] + args[1:]
-    for arg in args:
-        new_date = dateparser.parse(arg, languages=LANG, settings=DATEPARSER_SETTINGS)
-        if new_date:
-            date = new_date
-            continue
-        new_loc = LOCATIONS.get(arg, None)
-        if new_loc:
-            loc = new_loc
-            continue
-
+    arg = update.message.text.replace("/cafete", "").strip()
+    try:
+        loc, dt = parse_loc_date(arg)
+        if not dt:
+            dt = datetime.now()
+        if not loc:
+            loc = "mensacafete"
+    except ValueError as e:
         k = list(LOCATIONS.keys())
         s = " or ".join([", ".join(k[:-1]), k[-1]])
         bot.sendMessage(chat_id=update.message.chat_id,
-                        text="Could not parse '%s'. "
-                             "Try 'today', 'tomorrow', 'Friday', any date or the locations %s." % (arg, s))
+                        text="%s. Try 'today', 'tomorrow', 'Friday', any date or the locations %s." % (e, s))
         return
 
-    bot.sendMessage(chat_id=update.message.chat_id, text=get_open_formatted(loc, date),
-                    parse_mode=MARKDOWN)
+    bot.sendMessage(chat_id=update.message.chat_id, text=get_open_formatted(loc, dt), parse_mode=MARKDOWN)
 
 
 @ComHandlerFunc("abbr")
