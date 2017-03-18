@@ -11,8 +11,45 @@ DATEPARSER_SETTINGS = {'PREFER_DATES_FROM': 'future'}
 
 JINJA2_ENV = SandboxedEnvironment(
     loader=PackageLoader('mensabot', 'templates'),
-    trim_blocks=True, lstrip_blocks=True
+    trim_blocks=True, lstrip_blocks=True, auto_reload=True
 )
+
+KETCHUP = ["kartoffel", "potato", "pommes", "twister", "kroketten", "rösti", "schnitzel", "curry", "cordon"]
+
+
+def filter_kennz(list: List[dish], kennz):
+    if isinstance(kennz, str):
+        kennz = kennz.split(",")
+    return (v for v in list if any(v.kennz[k] for k in kennz))
+
+
+def filter_kennz_not(list: List[dish], kennz):
+    if isinstance(kennz, str):
+        kennz = kennz.split(",")
+    return (v for v in list if not any(v.kennz[k] for k in kennz))
+
+
+def filter_zusatz(list: List[dish], zusatz):
+    if isinstance(zusatz, str):
+        zusatz = zusatz.split(",")
+    return (v for v in list if any(v.zusatz[k] for k in zusatz))
+
+
+def filter_zusatz_not(list: List[dish], zusatz):
+    if isinstance(zusatz, str):
+        zusatz = zusatz.split(",")
+    return (v for v in list if not any(v.zusatz[k] for k in zusatz))
+
+
+def filter_ketchup(list: List[dish]):
+    return (v for v in list if any(s in v.name.lower() for s in KETCHUP))
+
+
+JINJA2_ENV.filters["kennz"] = filter_kennz
+JINJA2_ENV.filters["kennz_not"] = filter_kennz_not
+JINJA2_ENV.filters["zusatz"] = filter_zusatz
+JINJA2_ENV.filters["zusatz_not"] = filter_zusatz_not
+JINJA2_ENV.filters["ketchup"] = filter_ketchup
 
 schedule = NamedTuple("schedule", [("open", time), ("close", time), ("day", datetime)])
 
