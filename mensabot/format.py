@@ -68,3 +68,6 @@ def get_open_formatted(loc, dt):
 
     return JINJA2_ENV.get_template("open.md").render(
         {"open_info": open_info, "schedule": sched, "date": dt, "loc": loc, "NOT_OPEN": NOT_OPEN})
+
+def get_abbr():
+    return JINJA2_ENV.get_template("abbr.md").render()

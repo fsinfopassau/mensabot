@@ -1,5 +1,6 @@
 - Telegram Bot
     - let users register for automatic menu notification at a certain time
+    - lookup abbreviations regarding marked ingredients
     - personalize localisation, filter dishes, ... -> Jinja2 templates?
     - `/cafete`
         - handle edge-case location "mensaessen" -> rename to "open"?
@@ -13,7 +14,7 @@
     - add day of week to "opens in 3 days at 08:00:00"
     - add dish kennz and zusatz as filterable booleans
 - Mensa API
-    - use [better website]( use http://www.uni-passau.de/studium/waehrend-des-studiums/semesterterminplan/vorlesungszeiten/)
+    - use [better website](http://www.uni-passau.de/studium/waehrend-des-studiums/semesterterminplan/vorlesungszeiten/)
         for `get_semester_dates`
     - clear caches from time to time
     - add doc and use namedtuples

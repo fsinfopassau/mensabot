@@ -1,4 +1,5 @@
 import logging
+import traceback
 from datetime import datetime
 
 import dateparser
@@ -6,7 +7,7 @@ import telegram
 from telegram.ext import CommandHandler, Updater
 
 from mensabot.config import TELEGRAM_TOKEN
-from mensabot.format import DATEPARSER_SETTINGS, LANG, LOCATIONS, get_mensa_formatted, get_open_formatted
+from mensabot.format import DATEPARSER_SETTINGS, LANG, LOCATIONS, get_abbr, get_mensa_formatted, get_open_formatted
 
 MARKDOWN = telegram.ParseMode.MARKDOWN
 
@@ -23,6 +24,7 @@ def ComHandlerFunc(command, **kwargs):
             try:
                 func(bot, update)
             except:
+                traceback.print_exc()
                 bot.sendMessage(
                     chat_id=update.message.chat_id, text="Master, I failed! 😢", parse_mode=MARKDOWN)
                 raise
@@ -77,6 +79,11 @@ def cafete(bot, update):
 
     bot.sendMessage(chat_id=update.message.chat_id, text=get_open_formatted(loc, date),
                     parse_mode=MARKDOWN)
+
+
+@ComHandlerFunc("abbr")
+def abbr(bot, update):
+    bot.sendMessage(chat_id=update.message.chat_id, text=get_abbr(), parse_mode=MARKDOWN)
 
 
 updater.start_polling()
