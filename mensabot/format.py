@@ -112,7 +112,7 @@ def parse_loc(s):
         return "audimax"
     elif s in ["m", "mc", "mensa"] or s.startswith("mensac"):
         return "mensacafete"
-    elif s == "nk" or s.startswith("niko"):
+    elif s in ["nk", "kk", "kc", "kuca", "kuka"] or s.startswith("niko") or s.startswith("kul"):
         return "nikolakloster"
     elif s in ["w", "wi", "ww", "wiwi"]:
         return "wiwi"
