@@ -1,7 +1,9 @@
 import logging
+import subprocess
 import traceback
 from datetime import datetime, timedelta
 
+import pkg_resources
 import telegram
 from telegram.ext import CommandHandler, Updater
 
@@ -84,6 +86,14 @@ def cafete(bot, update):
 @ComHandlerFunc("abbr")
 def abbr(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text=get_abbr(), parse_mode=MARKDOWN)
+
+
+@ComHandlerFunc("version")
+def version(bot, update):
+    pkg_data = pkg_resources.require("mensabot")[0]
+    git_rev = subprocess.check_output(["git", "describe", "--always"]).decode('ascii').strip()
+    bot.sendMessage(chat_id=update.message.chat_id,
+                    text="{} {} {}".format(pkg_data.project_name.title(), pkg_data.version, git_rev), parse_mode=MARKDOWN)
 
 
 def main():
