@@ -1,14 +1,38 @@
-import random
+import sys
+from pkgutil import get_data
 
 import dateparser
 from babel.dates import format_date, format_time
+from dateparser import DateDataParser
 from jinja2 import PackageLoader
 from jinja2.sandbox import SandboxedEnvironment
 
 from mensabot.mensa import *
 
+
+def inject_alt_langs():
+    """
+    Make the lookup function for dateparser language definition files also look in mensabot.languages  
+    """
+
+    def get_data2(package, resource):
+        if package == "data":
+            try:
+                data = get_data("mensabot.languages", resource)
+                if data:
+                    return data
+            except:
+                pass
+        return get_data(package, resource)
+
+    DateDataParser.language_loader = None
+    sys.modules['dateparser.languages.loader'].get_data = get_data2
+    sys.modules['dateparser.utils'].get_data = get_data2
+
+
 LANG = ['de', 'en']
 DATEPARSER_SETTINGS = {'PREFER_DATES_FROM': 'future'}
+inject_alt_langs()
 
 JINJA2_ENV = SandboxedEnvironment(
     loader=PackageLoader('mensabot', 'templates'),
@@ -127,6 +151,10 @@ def parse_date(s):
         return None
     if not isinstance(s, str):
         s = " ".join(s)
+    if s.startswith("+"):
+        s = "in " + s[1:]
+    if s.startswith("-"):
+        s = "vor " + s[1:]
 
     v = dateparser.parse(s, languages=LANG, settings=DATEPARSER_SETTINGS)
     if not v:
