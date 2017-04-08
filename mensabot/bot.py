@@ -1,4 +1,6 @@
+import inspect
 import logging
+import os
 import subprocess
 import traceback
 from datetime import datetime, timedelta
@@ -7,6 +9,7 @@ import pkg_resources
 import telegram
 from telegram.ext import CommandHandler, Updater
 
+from mensabot import config
 from mensabot.config import TELEGRAM_TOKEN
 from mensabot.format import LOCATIONS, get_abbr, get_mensa_formatted, get_next_menu_date, get_open_formatted, \
     parse_loc_date
@@ -92,9 +95,17 @@ def abbr(bot, update):
 @ComHandlerFunc("version")
 def version(bot, update):
     pkg_data = pkg_resources.require("mensabot")[0]
-    git_rev = subprocess.check_output(["git", "describe", "--always"]).decode('ascii').strip()
+    try:
+        git_rev = subprocess.check_output(
+            ["git", "describe", "--always"],
+            cwd=os.path.dirname(inspect.getfile(inspect.currentframe()))
+        ).decode('ascii').strip()
+    except NotADirectoryError:
+        git_rev = "release"
     bot.sendMessage(chat_id=update.message.chat_id,
-                    text="{} {} {}".format(pkg_data.project_name.title(), pkg_data.version, git_rev),
+                    text="{} {} {} \[{}]".format(
+                        pkg_data.project_name.title(), pkg_data.version,
+                        git_rev, config.DEPLOY_MODE),
                     parse_mode=MARKDOWN)
 
 
