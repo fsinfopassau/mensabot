@@ -8,7 +8,7 @@
 {%- endmacro %}
 
 {% macro icons_kennz(kennz) -%}
-{%- for k in kennz -%}
+{%- for k in kennz|sort -%}
 {%- if k == 'G' -%}    🐓
 {%- elif k == 'S' -%}  🐖
 {%- elif k == 'R' -%}  🐄
