@@ -34,6 +34,7 @@ setup(
         'jinja2',
         'regex',
         'babel',
-        'python-telegram-bot'
+        'python-telegram-bot',
+        'sqlalchemy',
     ]
 )

@@ -46,6 +46,7 @@ LOCATIONS = {
     "wiwi": "cafeterien/cafebar-uni-pa-wiwi",
     "mensaessen": "mensen/mensa-uni-passau"
 }
+PRICES_CATEGORIES = ["stud", "bed", "gast"]
 
 
 @functools.lru_cache()

@@ -57,19 +57,20 @@ def filter_ketchup(list: List[dish]):
     return (v for v in list if any(s in v.name.lower() for s in KETCHUP))
 
 
-def get_mensa_formatted(dt, template=None, price_cat="stud", locale=LANG[0]):
-    if not template:
-        template = locale
+def get_mensa_formatted(dt, template=None, locale=None, price_category="stud"):
+    locale = locale or LANG[0]
+    template = template or locale
     return JINJA2_ENV.get_template("{}/menu.md".format(template)).render(
-        {"menu": get_menu_day(dt), "date": dt, "now": datetime.now(), "locale": locale, "price_cat": price_cat})
+        {"menu": get_menu_day(dt), "date": dt, "now": datetime.now(), "locale": locale,
+         "price_category": price_category})
 
 
 schedule = NamedTuple("schedule", [("open", time), ("close", time), ("day", datetime)])
 
 
-def get_open_formatted(loc, dt, template=None, locale=LANG[0]):
-    if not template:
-        template = locale
+def get_open_formatted(loc, dt, template=None, locale=None):
+    locale = locale or LANG[0]
+    template = template or locale
 
     # next open date
     open_info = get_next_open(dt, LOCATIONS[loc])

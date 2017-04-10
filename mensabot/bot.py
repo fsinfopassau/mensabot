@@ -3,6 +3,7 @@ import logging
 import os
 import subprocess
 import traceback
+from contextlib import ExitStack, closing, contextmanager
 from datetime import datetime, timedelta
 
 import pkg_resources
@@ -12,8 +13,9 @@ from telegram.ext import CommandHandler, Updater
 from mensabot import config
 from mensabot.config import TELEGRAM_TOKEN
 from mensabot.format import get_abbr, get_mensa_formatted, get_next_menu_date, get_open_formatted
-from mensabot.mensa import LOCATIONS
+from mensabot.mensa import LOCATIONS, PRICES_CATEGORIES
 from mensabot.parse import parse_loc_date
+from mensabot.db import CHATS, SQL_ENGINE
 
 MARKDOWN = telegram.ParseMode.MARKDOWN
 
@@ -22,6 +24,15 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 updater = Updater(token=TELEGRAM_TOKEN)
 dispatcher = updater.dispatcher
+
+
+@contextmanager
+def chat_record(update):
+    id = update.message.chat.id
+    with ExitStack() as s:
+        conn = s.enter_context(closing(SQL_ENGINE.connect()))
+        res = s.enter_context(closing(conn.execute(CHATS.select(CHATS.c.id == id))))
+        yield res.fetchone()
 
 
 def ComHandlerFunc(command, **kwargs):
@@ -45,8 +56,9 @@ def ComHandlerFunc(command, **kwargs):
 
 @ComHandlerFunc("start")
 def start(bot, update):
-    bot.sendMessage(chat_id=update.message.chat_id, text="MensaBot Passau to your service. "
-                                                         "Try /mensa or /cafete and add a time or location if you want.")
+    bot.sendMessage(chat_id=update.message.chat_id, text= \
+        "MensaBot Passau to your service. "
+        "Try /mensa or /cafete and add a time or location if you want.")
 
 
 @ComHandlerFunc("mensa")
@@ -66,7 +78,15 @@ def mensa(bot, update):
                         text="%s. Try 'today', 'tomorrow', 'Friday' or a date." % e)
         return
 
-    bot.sendMessage(chat_id=update.message.chat_id, text=get_mensa_formatted(dt), parse_mode=MARKDOWN)
+    with chat_record(update) as chat:
+        bot.sendMessage(
+            chat_id=update.message.chat_id,
+            text=get_mensa_formatted(
+                dt,
+                template=chat.template if chat else None,
+                locale=chat.locale if chat else None,
+                price_category=PRICES_CATEGORIES[chat.price_category if chat else 0]),
+            parse_mode=MARKDOWN)
 
 
 @ComHandlerFunc("cafete")
@@ -85,7 +105,13 @@ def cafete(bot, update):
                         text="%s. Try 'today', 'tomorrow', 'Friday', any date or the locations %s." % (e, s))
         return
 
-    bot.sendMessage(chat_id=update.message.chat_id, text=get_open_formatted(loc, dt), parse_mode=MARKDOWN)
+    with chat_record(update) as chat:
+        bot.sendMessage(chat_id=update.message.chat_id,
+                        text=get_open_formatted(
+                            loc, dt,
+                            template=chat.template if chat else None,
+                            locale=chat.locale if chat else None),
+                        parse_mode=MARKDOWN)
 
 
 @ComHandlerFunc("abbr")
