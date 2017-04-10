@@ -1,57 +1,19 @@
-from contextlib import closing
-
 from babel.dates import format_date, format_time
-from jinja2 import BaseLoader, PackageLoader
+from jinja2 import PackageLoader
 from jinja2.sandbox import SandboxedEnvironment
 
 from mensabot.mensa import *
+from mensabot.mensa import LOCATIONS
 from mensabot.parse import LANG
-from mensabot.user import chats, engine, templates
 
 KETCHUP = ["kartoffel", "potato", "pommes", "twister", "kroketten", "rösti", "schnitzel", "cordon"]
 
-LOCATIONS = {
-    "audimax": "cafeterien/cafeteria-uni-pa-audimax",
-    "mensacafete": "cafeterien/cafeteria-uni-pa-mensagebaeude",
-    "nikolakloster": "cafeterien/cafeteria-uni-pa-nikolakloster",
-    "wiwi": "cafeterien/cafebar-uni-pa-wiwi",
-    "mensaessen": "mensen/mensa-uni-passau"
-}
-
-
-class DBTemplateLoader(BaseLoader):
-    def __init__(self, file_loader, default_path):
-        self.file_loader = file_loader
-        self.default_path = default_path
-
-    def get_source(self, environment, template):
-        path = template.split("/")
-        if len(path) != 2:
-            return self.file_loader.get_source(environment, template)
-        user, file = path
-
-        conn = engine.connect()
-        # check if user uses a built-in template
-        with closing(conn.execute(chats.select(chats.c.id == user))) as res:
-            row = res.fetchone()
-            if row and row.template_path:
-                return self.file_loader.get_source(environment, "{}/{}".format(row.template_path, file))
-
-        # check if user uses a custom template
-        q = templates.select(templates.c.user_id == user and templates.c.filename == file)
-        with closing(conn.execute(q)) as res:
-            row = res.fetchone()
-            if row:
-                return row.template, "sqlite://templates/{}/{}".format(user, file), lambda: True
-
-        # return default template
-        return self.file_loader.get_source(environment, self.default_path + "/" + file)
-
-
 JINJA2_ENV = SandboxedEnvironment(
-    loader=DBTemplateLoader(PackageLoader('mensabot', 'templates'), LANG[0]),
+    loader=PackageLoader('mensabot', 'templates'),
     trim_blocks=True, lstrip_blocks=True, auto_reload=True
 )
+JINJA2_ENV.filters["format_date"] = format_date
+JINJA2_ENV.filters["format_time"] = format_time
 
 
 def jinja2_filter(filter_name):
@@ -95,20 +57,20 @@ def filter_ketchup(list: List[dish]):
     return (v for v in list if any(s in v.name.lower() for s in KETCHUP))
 
 
-JINJA2_ENV.filters["format_date"] = format_date
-JINJA2_ENV.filters["format_time"] = format_time
-
-
-
-def get_mensa_formatted(dt, locale=LANG[0]):
-    return JINJA2_ENV.get_template(locale + "/menu.md").render(
-        {"menu": get_menu_day(dt), "date": dt, "now": datetime.now(), "locale": locale})
+def get_mensa_formatted(dt, template=None, price_cat="stud", locale=LANG[0]):
+    if not template:
+        template = locale
+    return JINJA2_ENV.get_template("{}/menu.md".format(template)).render(
+        {"menu": get_menu_day(dt), "date": dt, "now": datetime.now(), "locale": locale, "price_cat": price_cat})
 
 
 schedule = NamedTuple("schedule", [("open", time), ("close", time), ("day", datetime)])
 
 
-def get_open_formatted(loc, dt, locale=LANG[0]):
+def get_open_formatted(loc, dt, template=None, locale=LANG[0]):
+    if not template:
+        template = locale
+
     # next open date
     open_info = get_next_open(dt, LOCATIONS[loc])
 
@@ -116,7 +78,7 @@ def get_open_formatted(loc, dt, locale=LANG[0]):
     sched = [schedule(*get_opening_times(LOCATIONS[loc])[(is_holiday(day), day.isoweekday() - 1)], day=day)
              for day in [dt + timedelta(days=i - dt.weekday()) for i in range(7)]]
 
-    return JINJA2_ENV.get_template(locale + "/open.md").render(
+    return JINJA2_ENV.get_template("{}/open.md".format(template)).render(
         {"open_info": open_info, "schedule": sched, "date": dt, "loc": loc, "NOT_OPEN": NOT_OPEN,
          "now": datetime.now(), "locale": locale})
 

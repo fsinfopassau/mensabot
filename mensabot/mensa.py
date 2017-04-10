@@ -3,11 +3,11 @@ import functools
 import warnings
 from collections import Counter
 from datetime import date, datetime, time, timedelta
-from typing import Dict, List, NamedTuple, Tuple
 
 import regex as re
 import requests
 from bs4 import BeautifulSoup
+from typing import Dict, List, NamedTuple, Tuple
 
 MENU_URL = "http://www.stwno.de/infomax/daten-extern/csv/UNI-P/"
 MENU_TYPES = ["S", "H", "B", "N"]
@@ -38,6 +38,14 @@ dish = NamedTuple("dish", [
     ("bed", float),
     ("gast", float)
 ])
+
+LOCATIONS = {
+    "audimax": "cafeterien/cafeteria-uni-pa-audimax",
+    "mensacafete": "cafeterien/cafeteria-uni-pa-mensagebaeude",
+    "nikolakloster": "cafeterien/cafeteria-uni-pa-nikolakloster",
+    "wiwi": "cafeterien/cafebar-uni-pa-wiwi",
+    "mensaessen": "mensen/mensa-uni-passau"
+}
 
 
 @functools.lru_cache()

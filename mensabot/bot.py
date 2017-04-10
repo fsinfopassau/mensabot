@@ -11,7 +11,8 @@ from telegram.ext import CommandHandler, Updater
 
 from mensabot import config
 from mensabot.config import TELEGRAM_TOKEN
-from mensabot.format import LOCATIONS, get_abbr, get_mensa_formatted, get_next_menu_date, get_open_formatted
+from mensabot.format import get_abbr, get_mensa_formatted, get_next_menu_date, get_open_formatted
+from mensabot.mensa import LOCATIONS
 from mensabot.parse import parse_loc_date
 
 MARKDOWN = telegram.ParseMode.MARKDOWN
