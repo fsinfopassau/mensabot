@@ -1,43 +1,12 @@
-import sys
-from pkgutil import get_data
+from contextlib import closing
 
-import dateparser
 from babel.dates import format_date, format_time
-from dateparser import DateDataParser
-from jinja2 import PackageLoader
+from jinja2 import BaseLoader, PackageLoader
 from jinja2.sandbox import SandboxedEnvironment
 
 from mensabot.mensa import *
-
-
-def inject_alt_langs():
-    """
-    Make the lookup function for dateparser language definition files also look in mensabot.languages  
-    """
-
-    def get_data2(package, resource):
-        if package == "data":
-            try:
-                data = get_data("mensabot.languages", resource)
-                if data:
-                    return data
-            except:
-                pass
-        return get_data(package, resource)
-
-    DateDataParser.language_loader = None
-    sys.modules['dateparser.languages.loader'].get_data = get_data2
-    sys.modules['dateparser.utils'].get_data = get_data2
-
-
-LANG = ['de', 'en']
-DATEPARSER_SETTINGS = {'PREFER_DATES_FROM': 'future'}
-inject_alt_langs()
-
-JINJA2_ENV = SandboxedEnvironment(
-    loader=PackageLoader('mensabot', 'templates'),
-    trim_blocks=True, lstrip_blocks=True, auto_reload=True
-)
+from mensabot.parse import LANG
+from mensabot.user import chats, engine, templates
 
 KETCHUP = ["kartoffel", "potato", "pommes", "twister", "kroketten", "rösti", "schnitzel", "cordon"]
 
@@ -50,48 +19,93 @@ LOCATIONS = {
 }
 
 
+class DBTemplateLoader(BaseLoader):
+    def __init__(self, file_loader, default_path):
+        self.file_loader = file_loader
+        self.default_path = default_path
+
+    def get_source(self, environment, template):
+        path = template.split("/")
+        if len(path) != 2:
+            return self.file_loader.get_source(environment, template)
+        user, file = path
+
+        conn = engine.connect()
+        # check if user uses a built-in template
+        with closing(conn.execute(chats.select(chats.c.id == user))) as res:
+            row = res.fetchone()
+            if row and row.template_path:
+                return self.file_loader.get_source(environment, "{}/{}".format(row.template_path, file))
+
+        # check if user uses a custom template
+        q = templates.select(templates.c.user_id == user and templates.c.filename == file)
+        with closing(conn.execute(q)) as res:
+            row = res.fetchone()
+            if row:
+                return row.template, "sqlite://templates/{}/{}".format(user, file), lambda: True
+
+        # return default template
+        return self.file_loader.get_source(environment, self.default_path + "/" + file)
+
+
+JINJA2_ENV = SandboxedEnvironment(
+    loader=DBTemplateLoader(PackageLoader('mensabot', 'templates'), LANG[0]),
+    trim_blocks=True, lstrip_blocks=True, auto_reload=True
+)
+
+
+def jinja2_filter(filter_name):
+    def tags_decorator(func):
+        JINJA2_ENV.filters[filter_name] = func
+        return func
+
+    return tags_decorator
+
+
+@jinja2_filter("kennz")
 def filter_kennz(list: List[dish], kennz):
     if isinstance(kennz, str):
         kennz = kennz.split(",")
     return (v for v in list if any(v.kennz[k] for k in kennz))
 
 
+@jinja2_filter("kennz_not")
 def filter_kennz_not(list: List[dish], kennz):
     if isinstance(kennz, str):
         kennz = kennz.split(",")
     return (v for v in list if not any(v.kennz[k] for k in kennz))
 
 
+@jinja2_filter("zusatz")
 def filter_zusatz(list: List[dish], zusatz):
     if isinstance(zusatz, str):
         zusatz = zusatz.split(",")
     return (v for v in list if any(v.zusatz[k] for k in zusatz))
 
 
+@jinja2_filter("zusatz_not")
 def filter_zusatz_not(list: List[dish], zusatz):
     if isinstance(zusatz, str):
         zusatz = zusatz.split(",")
     return (v for v in list if not any(v.zusatz[k] for k in zusatz))
 
 
+@jinja2_filter("ketchup")
 def filter_ketchup(list: List[dish]):
     return (v for v in list if any(s in v.name.lower() for s in KETCHUP))
 
 
-JINJA2_ENV.filters["kennz"] = filter_kennz
-JINJA2_ENV.filters["kennz_not"] = filter_kennz_not
-JINJA2_ENV.filters["zusatz"] = filter_zusatz
-JINJA2_ENV.filters["zusatz_not"] = filter_zusatz_not
-JINJA2_ENV.filters["ketchup"] = filter_ketchup
 JINJA2_ENV.filters["format_date"] = format_date
 JINJA2_ENV.filters["format_time"] = format_time
 
-schedule = NamedTuple("schedule", [("open", time), ("close", time), ("day", datetime)])
 
 
 def get_mensa_formatted(dt, locale=LANG[0]):
     return JINJA2_ENV.get_template(locale + "/menu.md").render(
         {"menu": get_menu_day(dt), "date": dt, "now": datetime.now(), "locale": locale})
+
+
+schedule = NamedTuple("schedule", [("open", time), ("close", time), ("day", datetime)])
 
 
 def get_open_formatted(loc, dt, locale=LANG[0]):
@@ -109,54 +123,3 @@ def get_open_formatted(loc, dt, locale=LANG[0]):
 
 def get_abbr():
     return JINJA2_ENV.get_template("abbr.md").render()
-
-
-def parse_loc_date(s):
-    tokens = s.split(" ")
-    # check whether location is first word
-    loc = parse_loc(tokens[0])
-    if loc:
-        return loc, parse_date(tokens[1:])
-    # or last word
-    loc = parse_loc(tokens[-1])
-    if loc:
-        return loc, parse_date(tokens[:-1])
-    # otherwise, it's probably only a date
-    return None, parse_date(tokens)
-
-
-def parse_loc(s):
-    if not s or s == ['']:
-        return None
-    if not isinstance(s, str):
-        s = " ".join(s)
-    s = s.lower()
-
-    if s == "am" or s.startswith("audi"):
-        return "audimax"
-    elif s in ["m", "mc", "mensa"] or s.startswith("mensac"):
-        return "mensacafete"
-    elif s in ["nk", "kk", "kc", "kuca", "kuka"] or s.startswith("niko") or s.startswith("kul"):
-        return "nikolakloster"
-    elif s in ["w", "wi", "ww", "wiwi"]:
-        return "wiwi"
-    elif s == "essen" or s.startswith("mensae"):
-        return "mensaessen"
-
-    return None
-
-
-def parse_date(s):
-    if not s or s == ['']:
-        return None
-    if not isinstance(s, str):
-        s = " ".join(s)
-    if s.startswith("+"):
-        s = "in " + s[1:]
-    if s.startswith("-"):
-        s = "vor " + s[1:]
-
-    v = dateparser.parse(s, languages=LANG, settings=DATEPARSER_SETTINGS)
-    if not v:
-        raise ValueError("Could not parse date '%s'" % s)
-    return v
