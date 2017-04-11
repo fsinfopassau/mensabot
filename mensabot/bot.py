@@ -85,12 +85,12 @@ def mensa(bot, update):
         return
 
     with chat_record(update) as chat:
-        send_menu_message(dt, chat)
+        send_menu_message(dt, chat, update.message.chat_id)
 
 
-def send_menu_message(time, chat):
+def send_menu_message(time, chat, chat_id):
     updater.bot.sendMessage(
-        chat_id=chat.id,
+        chat_id=chat_id,
         text=get_mensa_formatted(
             time,
             template=chat.template if chat else None,
@@ -162,9 +162,12 @@ def check_locale(x):
 
 def check_notification_time(x):
     try:
-        return datetime.strptime(x, "%H:%M").time()
-    except ValueError as e:
-        raise ValueError("Could not parse time '%s', try e.g. '11:15'. (reason was %s)" % (x, e))
+        return datetime.strptime(x, "%H:%M:%S").time()
+    except ValueError:
+        try:
+            return datetime.strptime(x, "%H:%M").time()
+        except ValueError as e:
+            raise ValueError("Could not parse time '%s', try e.g. '11:15'. (reason was %s)" % (x, e))
 
 
 CONFIG_OPTIONS = {
@@ -222,13 +225,13 @@ def schedule_notification(now=None):
         conn = s.enter_context(closing(SQL_ENGINE.connect()))
         res = s.enter_context(closing(conn.execute(
             CHATS.select()
-                .where(and_(CHATS.c.notification_time > now.time(), CHATS.c.notification_time <= later.time()))
+                .where(and_(CHATS.c.notification_time >= now.time(), CHATS.c.notification_time < later.time()))
                 .order_by(CHATS.c.notification_time.asc())
         )))
         for row in res:
             notify_time = datetime.combine(now.date(), row.notification_time)
             logger.debug("Scheduling notification to {} for {:%H:%M}".format(row, notify_time))
-            SCHED.enterabs(notify_time.timestamp(), 100, send_menu_message, [notify_time, row])
+            SCHED.enterabs(notify_time.timestamp(), 100, send_menu_message, [notify_time, row, row.id])
 
 
 def schedule_clear_cache():
