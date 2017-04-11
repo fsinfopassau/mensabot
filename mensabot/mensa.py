@@ -1,5 +1,6 @@
 import csv
 import functools
+import logging
 import warnings
 from collections import Counter
 from datetime import date, datetime, time, timedelta
@@ -8,6 +9,8 @@ import regex as re
 import requests
 from bs4 import BeautifulSoup
 from typing import Dict, List, NamedTuple, Tuple
+
+logger = logging.getLogger("mensabot.mensa")
 
 MENU_URL = "http://www.stwno.de/infomax/daten-extern/csv/UNI-P/"
 MENU_TYPES = ["S", "H", "B", "N"]
@@ -262,3 +265,10 @@ def get_semester_dates() -> List[Tuple[str, date]]:
              soup.find_all("td", text=re.compile("^Vorlesungs(beginn|ende)"))]
     dates.sort(key=lambda e: e[1])
     return dates
+
+
+def clear_caches():
+    logger.info("Clearing caches...")
+    for func in [get_menu_week, get_opening_times, get_semester_dates]:
+        logger.debug("Statistics for cache of {}: {}".format(func.__name__, func.cache_info()))
+        func.cache_clear()

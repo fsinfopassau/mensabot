@@ -1,26 +1,32 @@
 import inspect
 import logging
+import math
 import os
+import sched
 import subprocess
+import time as systime
 import traceback
 from contextlib import ExitStack, closing, contextmanager
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 
 import pkg_resources
 import telegram
+from sqlalchemy import and_
 from telegram.ext import CommandHandler, Updater
 
 from mensabot import config
 from mensabot.config import TELEGRAM_TOKEN
 from mensabot.db import CHATS, SQL_ENGINE
-from mensabot.format import check_legal_template, get_abbr, get_mensa_formatted, get_next_menu_date, get_open_formatted
-from mensabot.mensa import LOCATIONS, PRICES_CATEGORIES
+from mensabot.format import check_legal_template, get_abbr, get_mensa_formatted, get_open_formatted
+from mensabot.mensa import LOCATIONS, PRICES_CATEGORIES, clear_caches, get_menu_day, get_next_menu_date
 from mensabot.parse import LANG, parse_loc_date
 
 MARKDOWN = telegram.ParseMode.MARKDOWN
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-# logging.getLogger("requests.packages.urllib3.connectionpool").setLevel(logging.DEBUG)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
+# logging.getLogger("requests.packages.urllib3.connectionpool").setLevel(logging.INFO)
+# logging.getLogger("telegram").setLevel(logging.INFO)
+logger = logging.getLogger("mensabot.bot")
 
 updater = Updater(token=TELEGRAM_TOKEN)
 dispatcher = updater.dispatcher
@@ -79,14 +85,18 @@ def mensa(bot, update):
         return
 
     with chat_record(update) as chat:
-        bot.sendMessage(
-            chat_id=update.message.chat_id,
-            text=get_mensa_formatted(
-                dt,
-                template=chat.template if chat else None,
-                locale=chat.locale if chat else None,
-                price_category=PRICES_CATEGORIES[chat.price_category if chat else 0]),
-            parse_mode=MARKDOWN)
+        send_menu_message(dt, chat)
+
+
+def send_menu_message(time, chat):
+    updater.bot.sendMessage(
+        chat_id=chat.id,
+        text=get_mensa_formatted(
+            time,
+            template=chat.template if chat else None,
+            locale=chat.locale if chat else None,
+            price_category=PRICES_CATEGORIES[chat.price_category if chat else 0]),
+        parse_mode=MARKDOWN)
 
 
 @ComHandlerFunc("cafete")
@@ -193,9 +203,61 @@ def set_config(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text="Updated %s to '%s'." % (args[0], args[1]))
 
 
+def schedule_notification(now=None):
+    if not now:
+        now = datetime.now()
+        now = now.replace(minute=math.floor(now.minute / SCHED_INTERVAL) * SCHED_INTERVAL,
+                          second=0, microsecond=0)
+    later = now + timedelta(minutes=SCHED_INTERVAL)
+
+    if not get_menu_day(now):
+        later = (later + timedelta(days=1)).replace(hour=0, minute=0)
+        logger.debug("Not sending any notifications at {:%Y-%m-%d %H:%M} as no menu is available".format(now))
+    else:
+        logger.debug("Scheduling notifications between {:%H:%M} and {:%H:%M}".format(now, later))
+
+    SCHED.enterabs(later.timestamp(), 10, schedule_notification, [later])
+
+    with ExitStack() as s:
+        conn = s.enter_context(closing(SQL_ENGINE.connect()))
+        res = s.enter_context(closing(conn.execute(
+            CHATS.select()
+                .where(and_(CHATS.c.notification_time > now.time(), CHATS.c.notification_time <= later.time()))
+                .order_by(CHATS.c.notification_time.asc())
+        )))
+        for row in res:
+            notify_time = datetime.combine(now.date(), row.notification_time)
+            logger.debug("Scheduling notification to {} for {:%H:%M}".format(row, notify_time))
+            SCHED.enterabs(notify_time.timestamp(), 100, send_menu_message, [notify_time, row])
+
+
+def schedule_clear_cache():
+    now = datetime.now()
+    SCHED.enterabs(datetime.combine((now + timedelta(days=7 - now.weekday())).date(), time(1, 0)).timestamp(),
+                   1000, schedule_clear_cache)
+    clear_caches()
+
+
+SCHED = sched.scheduler(systime.time, systime.sleep)
+SCHED_INTERVAL = 1
+
+
 def main():
     updater.start_polling()
-    print("Listening...")
+    logger.info("Listening...")
+    schedule_notification()
+    schedule_clear_cache()
+    logger.debug("Handing over to scheduler")
+    running = True
+    while running:
+        try:
+            SCHED.run(blocking=True)
+        except KeyboardInterrupt:
+            running = False
+            logger.info("KeyboardInterrupt, shutting down.", exc_info=1)
+            updater.stop()
+        except:
+            logger.error("Exception from scheduler, restarting.", exc_info=1)
 
 
 if __name__ == "__main__":

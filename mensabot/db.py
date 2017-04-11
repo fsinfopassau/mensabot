@@ -1,6 +1,6 @@
 from sqlalchemy import *
 
-SQL_ENGINE = create_engine('sqlite:///mensabot.sqlite', echo=True)
+SQL_ENGINE = create_engine('sqlite:///mensabot.sqlite', echo=False)
 
 metadata = MetaData()
 CHATS = Table(

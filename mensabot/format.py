@@ -1,9 +1,11 @@
+from datetime import datetime, time, timedelta
+
 from babel.dates import format_date, format_time
 from jinja2 import PackageLoader, TemplateNotFound
 from jinja2.sandbox import SandboxedEnvironment
+from typing import List, NamedTuple
 
-from mensabot.mensa import *
-from mensabot.mensa import LOCATIONS
+from mensabot.mensa import LOCATIONS, dish, get_menu_day, get_next_open, get_opening_times, is_holiday, NOT_OPEN
 from mensabot.parse import LANG
 
 KETCHUP = ["kartoffel", "potato", "pommes", "twister", "kroketten", "rösti", "schnitzel", "cordon"]
