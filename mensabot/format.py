@@ -1,5 +1,5 @@
 from babel.dates import format_date, format_time
-from jinja2 import PackageLoader
+from jinja2 import PackageLoader, TemplateNotFound
 from jinja2.sandbox import SandboxedEnvironment
 
 from mensabot.mensa import *
@@ -86,3 +86,12 @@ def get_open_formatted(loc, dt, template=None, locale=None):
 
 def get_abbr():
     return JINJA2_ENV.get_template("abbr.md").render()
+
+
+def check_legal_template(dir):
+    try:
+        JINJA2_ENV.get_template("{}/menu.md".format(dir))
+        JINJA2_ENV.get_template("{}/open.md".format(dir))
+        return dir
+    except TemplateNotFound:
+        raise ValueError("Unknown template '%s'. Try 'de' or 'en'." % dir)

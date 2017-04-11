@@ -12,10 +12,10 @@ from telegram.ext import CommandHandler, Updater
 
 from mensabot import config
 from mensabot.config import TELEGRAM_TOKEN
-from mensabot.format import get_abbr, get_mensa_formatted, get_next_menu_date, get_open_formatted
-from mensabot.mensa import LOCATIONS, PRICES_CATEGORIES
-from mensabot.parse import parse_loc_date
 from mensabot.db import CHATS, SQL_ENGINE
+from mensabot.format import check_legal_template, get_abbr, get_mensa_formatted, get_next_menu_date, get_open_formatted
+from mensabot.mensa import LOCATIONS, PRICES_CATEGORIES
+from mensabot.parse import LANG, parse_loc_date
 
 MARKDOWN = telegram.ParseMode.MARKDOWN
 
@@ -134,6 +134,63 @@ def version(bot, update):
                         pkg_data.project_name.title(), pkg_data.version,
                         git_rev, config.DEPLOY_MODE),
                     parse_mode=MARKDOWN)
+
+
+def check_price_category(x):
+    idx = PRICES_CATEGORIES.index(x)
+    if idx < 0:
+        raise ValueError("Unknown price category '%s'. Try 'stud', 'bed' or 'gast'." % x)
+    return idx
+
+
+def check_locale(x):
+    idx = LANG.index(x)
+    if idx < 0:
+        raise ValueError("Unknown locale '%s'. Try 'de' or 'en'." % x)
+    return x
+
+
+def check_notification_time(x):
+    try:
+        return datetime.strptime(x, "%H:%M").time()
+    except ValueError as e:
+        raise ValueError("Could not parse time '%s', try e.g. '11:15'. (reason was %s)" % (x, e))
+
+
+CONFIG_OPTIONS = {
+    "template": check_legal_template,
+    "price_category": check_price_category,
+    "locale": check_locale,
+    "notification_time": check_notification_time,
+}
+
+
+@ComHandlerFunc("set")
+def set_config(bot, update):
+    id = update.message.chat.id
+    args = update.message.text.replace("/set", "").strip().split(" ")
+    if len(args) != 2:
+        bot.sendMessage(chat_id=update.message.chat_id,
+                        text="Could not parse args '%s'. Enter a config option and a new value." % args)
+        return
+
+    try:
+        arg = CONFIG_OPTIONS[args[0]](args[1])
+    except ValueError as e:
+        bot.sendMessage(chat_id=update.message.chat_id, text=str(e))
+        return
+
+    with ExitStack() as s:
+        val = {args[0]: arg}
+        conn = s.enter_context(closing(SQL_ENGINE.connect()))
+        res = s.enter_context(closing(conn.execute(
+            CHATS.update().values(**val).where(CHATS.c.id == id)
+        )))
+        if res.rowcount != 1:
+            s.enter_context(closing(conn.execute(
+                CHATS.insert().values(id=id, **val)
+            )))
+    bot.sendMessage(chat_id=update.message.chat_id, text="Updated %s to '%s'." % (args[0], args[1]))
 
 
 def main():

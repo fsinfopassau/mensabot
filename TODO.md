@@ -1,9 +1,10 @@
 - Telegram Bot
-    - let users change their configuration
+    - add UI for changing configuration
     - let users register for automatic menu notification at a certain time
     - lookup abbreviations regarding marked ingredients and split abbreviation table
     - `/cafete`
         - handle edge-case location "mensaessen" -> rename to "open"?
+    - evaluate user experience
 - Formatting
     - nothing left to do
 - Mensa API
