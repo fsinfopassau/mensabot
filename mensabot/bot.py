@@ -25,7 +25,7 @@ MARKDOWN = telegram.ParseMode.MARKDOWN
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
 # logging.getLogger("requests.packages.urllib3.connectionpool").setLevel(logging.INFO)
-# logging.getLogger("telegram").setLevel(logging.INFO)
+logging.getLogger("telegram.bot").setLevel(logging.INFO)
 logger = logging.getLogger("mensabot.bot")
 
 updater = Updater(token=TELEGRAM_TOKEN)
