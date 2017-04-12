@@ -8,7 +8,7 @@ from typing import List, NamedTuple
 from mensabot.mensa import LOCATIONS, dish, get_menu_day, get_next_open, get_opening_times, is_holiday, NOT_OPEN
 from mensabot.parse import LANG
 
-KETCHUP = ["kartoffel", "potato", "pommes", "twister", "kroketten", "rösti", "schnitzel", "cordon"]
+KETCHUP = ["kartoffel", "potato", "pommes", "twister", "kroketten", "rösti", "schnitzel", "cordon", "burger", "fries"]
 
 JINJA2_ENV = SandboxedEnvironment(
     loader=PackageLoader('mensabot', 'templates'),
