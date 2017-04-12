@@ -16,7 +16,7 @@ def __inject_alt_langs():
     def get_data2(package, resource):
         if package == "data":
             try:
-                data = get_data("mensabot.languages", resource)
+                data = get_data("mensabot", "languages/{}".format(resource))
                 if data:
                     return data
             except:

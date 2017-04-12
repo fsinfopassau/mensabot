@@ -27,6 +27,9 @@ setup(
         ]
     },
     packages=find_packages(),
+    package_data={
+        'mensabot': ['templates', 'languages'],
+    },
     install_requires=[
         'dateparser',
         'requests',
