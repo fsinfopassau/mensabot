@@ -12,6 +12,7 @@ from datetime import datetime, time, timedelta
 import pkg_resources
 import telegram
 from sqlalchemy import and_
+from telegram import MessageEntity
 from telegram.ext import CommandHandler, Updater
 
 from mensabot import config
@@ -39,6 +40,14 @@ def chat_record(update):
         conn = s.enter_context(closing(SQL_ENGINE.connect()))
         res = s.enter_context(closing(conn.execute(CHATS.select(CHATS.c.id == id))))
         yield res.fetchone()
+
+
+def get_args(update):
+    text = update.message.text
+    for ent in update.message.entities:
+        if ent.type == MessageEntity.BOT_COMMAND:
+            text = text[:ent.offset] + text[ent.offset + ent.length:]
+    return text.strip().split(" ")
 
 
 def ComHandlerFunc(command, **kwargs):
@@ -69,9 +78,8 @@ def start(bot, update):
 
 @ComHandlerFunc("mensa")
 def mensa(bot, update):
-    arg = update.message.text.replace("/mensa", "").strip()
     try:
-        loc, dt = parse_loc_date(arg)
+        loc, dt = parse_loc_date(get_args(update))
         if not dt:
             dt = datetime.now()
             if dt.hour > 15:
@@ -101,9 +109,8 @@ def send_menu_message(time, chat, chat_id):
 
 @ComHandlerFunc("cafete")
 def cafete(bot, update):
-    arg = update.message.text.replace("/cafete", "").strip()
     try:
-        loc, dt = parse_loc_date(arg)
+        loc, dt = parse_loc_date(get_args(update))
         if not dt:
             dt = datetime.now()
         if not loc:
@@ -181,7 +188,7 @@ CONFIG_OPTIONS = {
 @ComHandlerFunc("set")
 def set_config(bot, update):
     id = update.message.chat.id
-    args = update.message.text.replace("/set", "").strip().split(" ")
+    args = get_args(update)
     if len(args) != 2:
         bot.sendMessage(chat_id=update.message.chat_id,
                         text="Could not parse args '%s'. Enter a config option and a new value." % args)
@@ -189,6 +196,11 @@ def set_config(bot, update):
 
     try:
         arg = CONFIG_OPTIONS[args[0]](args[1])
+    except KeyError:
+        bot.sendMessage(chat_id=update.message.chat_id, text="'{}' is not a valid config option. Try {}.".format(
+            args[0], ", ".join(CONFIG_OPTIONS.keys())
+        ))
+        return
     except ValueError as e:
         bot.sendMessage(chat_id=update.message.chat_id, text=str(e))
         return

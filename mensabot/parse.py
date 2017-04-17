@@ -31,8 +31,7 @@ def __inject_alt_langs():
 __inject_alt_langs()
 
 
-def parse_loc_date(s):
-    tokens = s.split(" ")
+def parse_loc_date(tokens):
     # check whether location is first word
     loc = parse_loc(tokens[0])
     if loc:
