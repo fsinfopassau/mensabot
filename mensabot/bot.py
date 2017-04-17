@@ -131,6 +131,10 @@ def abbr(bot, update):
 
 @ComHandlerFunc("version")
 def version(bot, update):
+    bot.sendMessage(chat_id=update.message.chat_id, text=get_version())
+
+
+def get_version():
     pkg_data = pkg_resources.require("mensabot")[0]
     try:
         git_rev = subprocess.check_output(
@@ -139,11 +143,7 @@ def version(bot, update):
         ).decode('ascii').strip()
     except NotADirectoryError:
         git_rev = "release"
-    bot.sendMessage(chat_id=update.message.chat_id,
-                    text="{} {} {} \[{}]".format(
-                        pkg_data.project_name.title(), pkg_data.version,
-                        git_rev, config.DEPLOY_MODE),
-                    parse_mode=MARKDOWN)
+    return "{} {} {} [{}]".format(pkg_data.project_name.title(), pkg_data.version, git_rev, config.DEPLOY_MODE)
 
 
 def check_price_category(x):
@@ -247,7 +247,7 @@ SCHED_INTERVAL = 1
 
 def main():
     updater.start_polling()
-    logger.info("Listening...")
+    logger.info("{} listening...".format(get_version()))
     schedule_notification()
     schedule_clear_cache()
     logger.debug("Handing over to scheduler")
