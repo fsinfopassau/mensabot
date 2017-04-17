@@ -1,9 +1,9 @@
 - Telegram Bot
     - add UI for changing configuration
-    - lookup abbreviations regarding marked ingredients and split abbreviation table
     - `/cafete`
         - handle edge-case location "mensaessen" -> rename to "open"?
-    - evaluate user experience
+    - evaluate user experience, input monkey testing for parsing exceptions
+    - internationalize non-template strings
 - Formatting
     - nothing left to do
 - Mensa API

@@ -133,7 +133,16 @@ def cafete(bot, update):
 
 @ComHandlerFunc("abbr")
 def abbr(bot, update):
-    bot.sendMessage(chat_id=update.message.chat_id, text=get_abbr(), parse_mode=MARKDOWN)
+    args = get_args(update)
+    abbrs = get_abbr()
+    if not args:
+        bot.sendMessage(chat_id=update.message.chat_id, text=abbrs, parse_mode=MARKDOWN)
+        return
+    found = [abbr for abbr in abbrs.split("\n") if abbr.startswith("`" + args[0])]
+    if not found:
+        bot.sendMessage(chat_id=update.message.chat_id, text="Abbreviation '{}' not found.".format(abbrs[0]))
+    else:
+        bot.sendMessage(chat_id=update.message.chat_id, text="\n".join(found), parse_mode=MARKDOWN)
 
 
 @ComHandlerFunc("version")
@@ -191,7 +200,7 @@ def set_config(bot, update):
     args = get_args(update)
     if len(args) != 2:
         bot.sendMessage(chat_id=update.message.chat_id,
-                        text="Could not parse args '%s'. Enter a config option and a new value." % args)
+                        text="Could not parse args '%s'. Enter a config option and a new value." % " ".join(args))
         return
 
     try:
