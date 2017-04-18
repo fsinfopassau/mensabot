@@ -135,12 +135,12 @@ def cafete(bot, update):
 def abbr(bot, update):
     args = get_args(update)
     abbrs = get_abbr()
-    if not args:
+    if not args or not args[0]:
         bot.sendMessage(chat_id=update.message.chat_id, text=abbrs, parse_mode=MARKDOWN)
         return
     found = [abbr for abbr in abbrs.split("\n") if abbr.startswith("`" + args[0])]
     if not found:
-        bot.sendMessage(chat_id=update.message.chat_id, text="Abbreviation '{}' not found.".format(abbrs[0]))
+        bot.sendMessage(chat_id=update.message.chat_id, text="Abbreviation '{}' not found.".format(args[0]))
     else:
         bot.sendMessage(chat_id=update.message.chat_id, text="\n".join(found), parse_mode=MARKDOWN)
 
