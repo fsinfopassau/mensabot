@@ -1,10 +1,15 @@
+import inspect
+import os
+import subprocess
 from datetime import datetime, time, timedelta
 
+import pkg_resources
 from babel.dates import format_date, format_time
 from jinja2 import PackageLoader, TemplateNotFound
 from jinja2.sandbox import SandboxedEnvironment
 from typing import List, NamedTuple
 
+from mensabot import config
 from mensabot.mensa import LOCATIONS, dish, get_menu_day, get_next_open, get_opening_times, is_holiday, NOT_OPEN
 from mensabot.parse import LANG
 
@@ -97,3 +102,15 @@ def check_legal_template(dir):
         return dir
     except TemplateNotFound:
         raise ValueError("Unknown template '%s'. Try 'de' or 'en'." % dir)
+
+
+def get_version():
+    pkg_data = pkg_resources.require("mensabot")[0]
+    try:
+        git_rev = subprocess.check_output(
+            ["git", "describe", "--always"],
+            cwd=os.path.dirname(inspect.getfile(inspect.currentframe()))
+        ).decode('ascii').strip()
+    except NotADirectoryError:
+        git_rev = "release"
+    return "{} {} {} [{}]".format(pkg_data.project_name.title(), pkg_data.version, git_rev, config.DEPLOY_MODE)
