@@ -96,6 +96,8 @@ def get_abbr():
 
 
 def check_legal_template(dir):
+    if dir is None:
+        return None
     try:
         JINJA2_ENV.get_template("{}/menu.md".format(dir))
         JINJA2_ENV.get_template("{}/open.md".format(dir))

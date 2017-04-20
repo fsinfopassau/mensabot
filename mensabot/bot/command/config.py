@@ -9,6 +9,8 @@ from mensabot.parse import LANG
 
 
 def check_price_category(x):
+    if x is None:
+        return 0
     idx = PRICES_CATEGORIES.index(x)
     if idx < 0:
         raise ValueError("Unknown price category '%s'. Try 'stud', 'bed' or 'gast'." % x)
@@ -16,6 +18,8 @@ def check_price_category(x):
 
 
 def check_locale(x):
+    if x is None:
+        return LANG[0]
     idx = LANG.index(x)
     if idx < 0:
         raise ValueError("Unknown locale '%s'. Try 'de' or 'en'." % x)
@@ -23,6 +27,8 @@ def check_locale(x):
 
 
 def check_notification_time(x):
+    if x is None:
+        return None
     try:
         return datetime.strptime(x, "%H:%M:%S").time()
     except ValueError:
@@ -31,6 +37,8 @@ def check_notification_time(x):
         except ValueError as e:
             raise ValueError("Could not parse time '%s', try e.g. '11:15'. (reason was %s)" % (x, e))
 
+
+CONFIG_RESET = ["none", "null", "default", "reset", "-"]
 
 CONFIG_OPTIONS = {
     "template": check_legal_template,
@@ -48,12 +56,15 @@ def set_config(bot, update):
         bot.sendMessage(chat_id=update.message.chat_id,
                         text="Could not parse args '%s'. Enter a config option and a new value." % " ".join(args))
         return
+    fun, arg = args
 
     try:
-        arg = CONFIG_OPTIONS[args[0]](args[1])
+        if arg.lower() in CONFIG_RESET:
+            arg = None
+        arg = CONFIG_OPTIONS[fun](arg)
     except KeyError:
         bot.sendMessage(chat_id=update.message.chat_id, text="'{}' is not a valid config option. Try {}.".format(
-            args[0], ", ".join(CONFIG_OPTIONS.keys())
+            fun, ", ".join(CONFIG_OPTIONS.keys())
         ))
         return
     except ValueError as e:
@@ -61,7 +72,7 @@ def set_config(bot, update):
         return
 
     with ExitStack() as s:
-        val = {args[0]: arg}
+        val = {fun: arg}
         conn = s.enter_context(closing(SQL_ENGINE.connect()))
         res = s.enter_context(closing(conn.execute(
             CHATS.update().values(**val).where(CHATS.c.id == id)
@@ -70,4 +81,4 @@ def set_config(bot, update):
             s.enter_context(closing(conn.execute(
                 CHATS.insert().values(id=id, **val)
             )))
-    bot.sendMessage(chat_id=update.message.chat_id, text="Updated %s to '%s'." % (args[0], args[1]))
+    bot.sendMessage(chat_id=update.message.chat_id, text="Updated %s to '%s'." % (fun, arg))
