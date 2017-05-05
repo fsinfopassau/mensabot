@@ -82,3 +82,27 @@ def set_config(bot, update):
                 CHATS.insert().values(id=id, **val)
             )))
     bot.sendMessage(chat_id=update.message.chat_id, text="Updated %s to '%s'." % (fun, arg))
+
+
+@ComHandlerFunc("get")
+def get_config(bot, update):
+    id = update.message.chat.id
+    args = get_args(update)
+    if len(args) != 1:
+        bot.sendMessage(chat_id=update.message.chat_id,
+                        text="Could not parse args '%s'. Enter the name of a config option." % " ".join(args))
+        return
+    fun, = args
+
+    if fun not in CONFIG_OPTIONS.keys():
+        bot.sendMessage(chat_id=update.message.chat_id, text="'{}' is not a valid config option. Try {}.".format(
+            fun, ", ".join(CONFIG_OPTIONS.keys())
+        ))
+        return
+
+    with ExitStack() as s:
+        conn = s.enter_context(closing(SQL_ENGINE.connect()))
+        res = s.enter_context(closing(conn.execute(
+            CHATS.select().where(CHATS.c.id == id)
+        ))).fetchone()
+        bot.sendMessage(chat_id=update.message.chat_id, text="%s: %s" % (fun, res[fun] or None))
