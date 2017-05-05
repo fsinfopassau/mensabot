@@ -2,15 +2,15 @@ import inspect
 import os
 import subprocess
 from datetime import datetime, time, timedelta
+from typing import List, NamedTuple
 
 import pkg_resources
 from babel.dates import format_date, format_time
 from jinja2 import PackageLoader, TemplateNotFound
 from jinja2.sandbox import SandboxedEnvironment
-from typing import List, NamedTuple
 
 from mensabot import config
-from mensabot.mensa import LOCATIONS, dish, get_menu_day, get_next_open, get_opening_times, is_holiday, NOT_OPEN
+from mensabot.mensa import LOCATIONS, NOT_OPEN, dish, get_menu_day, get_next_open, get_opening_times, is_holiday
 from mensabot.parse import LANG
 
 KETCHUP = ["kartoffel", "potato", "pommes", "twister", "kroketten", "rösti", "schnitzel", "cordon", "burger", "fries"]
@@ -31,6 +31,20 @@ def jinja2_filter(filter_name):
     return tags_decorator
 
 
+@jinja2_filter("warengruppe")
+def filter_warengruppe(list: List[dish], warengruppe):
+    if isinstance(warengruppe, str):
+        warengruppe = warengruppe.split(",")
+    return (v for v in list if any(v.warengruppe.startswith(w) for w in warengruppe))
+
+
+@jinja2_filter("warengruppe_not")
+def filter_warengruppe_not(list: List[dish], warengruppe):
+    if isinstance(warengruppe, str):
+        warengruppe = warengruppe.split(",")
+    return (v for v in list if not any(v.warengruppe.startswith(w) for w in warengruppe))
+
+
 @jinja2_filter("kennz")
 def filter_kennz(list: List[dish], kennz):
     if isinstance(kennz, str):
@@ -49,14 +63,14 @@ def filter_kennz_not(list: List[dish], kennz):
 def filter_zusatz(list: List[dish], zusatz):
     if isinstance(zusatz, str):
         zusatz = zusatz.split(",")
-    return (v for v in list if any(v.zusatz[k] for k in zusatz))
+    return (v for v in list if any(v.zusatz[z] for z in zusatz))
 
 
 @jinja2_filter("zusatz_not")
 def filter_zusatz_not(list: List[dish], zusatz):
     if isinstance(zusatz, str):
         zusatz = zusatz.split(",")
-    return (v for v in list if not any(v.zusatz[k] for k in zusatz))
+    return (v for v in list if not any(v.zusatz[z] for z in zusatz))
 
 
 @jinja2_filter("ketchup")
