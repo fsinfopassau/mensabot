@@ -10,7 +10,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='mensabot',
-    version='0.2.4',
+    version='0.2.5',
     description='telegram bot for uni passau mensa',
     long_description=long_description,
     url='https://github.com/N-Coder/mensabot',
@@ -23,12 +23,12 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "mensabot = mensabot.bot:main"
+            "mensabot = mensabot.bot.main:main"
         ]
     },
     packages=find_packages(),
     package_data={
-        'mensabot': ['templates/*', 'templates/*/*', 'languages/*'],
+        'mensabot': ['templates/*', 'templates/*/*', 'templates/*/*/*', 'languages/*'],
     },
     install_requires=[
         'dateparser',
