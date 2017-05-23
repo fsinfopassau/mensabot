@@ -1,7 +1,10 @@
+import difflib
+import itertools
 import re
+import warnings
 from collections import Counter
 from datetime import datetime
-from typing import NamedTuple
+from typing import List, NamedTuple
 
 import regex as re
 
@@ -92,3 +95,129 @@ def __parse_name(str_in):
 
     return name, zusatz, kennz
 
+
+########################################################################################################################
+
+class Change(object):
+    def __init__(self, type, from_dish, to_dish):
+        assert from_dish != to_dish
+        self.type = type
+        self.from_dish = from_dish
+        self.to_dish = to_dish
+
+        if not self.from_dish or not self.to_dish:
+            self.diff = {}
+        else:
+            self.diff = {
+                attr: (self.from_dish[idx], self.to_dish[idx])
+                for idx, attr in enumerate(dish._fields)
+                if self.from_dish[idx] != self.to_dish[idx]
+            }
+
+        if self.type == "MOVE":
+            if from_dish.name == to_dish.name and from_dish.warengruppe == to_dish.warengruppe:
+                self.type = "ATTR"
+                assert self.diff
+            else:
+                assert from_dish.warengruppe != to_dish.warengruppe
+
+    def __eq__(self, other):
+        return isinstance(other, Change) and \
+               self.type == other.type and \
+               self.from_dish == other.from_dish and \
+               self.to_dish == other.to_dish
+
+    def __str__(self):
+        if self.type == "ATTR":
+            return "%s ATR: %s (%s)" % (
+                self.from_dish.datum, self.from_dish.warengruppe, self.from_dish.name
+            )
+        elif self.type == "MOVE":
+            return "%s MOV: %s -> %s (%s)" % (
+                self.from_dish.datum, self.from_dish.warengruppe, self.to_dish.warengruppe, self.from_dish.name
+            )
+        elif self.type == "RENAME":
+            return "%s REN: %s -> %s (%s -> %s)" % (
+                self.from_dish.datum, self.from_dish.name, self.to_dish.name, self.from_dish.warengruppe,
+                self.to_dish.warengruppe
+            )
+        elif self.type == "REPLACE":
+            return "%s REP: %s -> %s (%s)" % (
+                self.from_dish.datum, self.from_dish.name, self.to_dish.name, self.from_dish.warengruppe
+            )
+        elif self.type == "REMOVE":
+            return "%s REM: - %s (%s)" % (
+                self.from_dish.datum, self.from_dish.warengruppe, self.from_dish.name
+            )
+        elif self.type == "ADD":
+            return "%s ADD: + %s (%s)" % (
+                self.to_dish.datum, self.to_dish.warengruppe, self.to_dish.name
+            )
+
+
+def generate_diff(menu1, menu2) -> List[Change]:
+    if menu1 == menu2:
+        return []
+
+    dates = {dish.datum for dish in menu1}
+    map1 = {datum: {dish.warengruppe: dish for dish in menu1 if dish.datum == datum} for datum in dates}
+    map2 = {datum: {dish.warengruppe: dish for dish in menu2 if dish.datum == datum} for datum in dates}
+
+    diff = []
+    for date in dates:
+        if map1[date] == map2[date]:
+            continue
+
+        # find all warengruppen that contain changes
+        changed = {
+            re.sub("[0-9]", "", wg) for wg
+            in itertools.chain(map1[date].keys(), map2[date].keys())
+            if map1[date].get(wg, None) != map2[date].get(wg, None)
+        }
+
+        for wg in changed:
+            # compare all items in the concerned warengruppe
+            changed_wg1 = [dish for dish in map1[date].values() if dish.warengruppe.startswith(wg)]
+            changed_wg2 = [dish for dish in map2[date].values() if dish.warengruppe.startswith(wg)]
+            changed_wg1.sort(key=lambda x: x.warengruppe)  # sort items to make algorithm deterministic
+            changed_wg2.sort(key=lambda x: x.warengruppe)
+            diff += __compare_changed_wg(changed_wg1, changed_wg2)
+
+    return diff
+
+
+def __compare_changed_wg(changed_wg1, changed_wg2):
+    diff, removed = [], []
+
+    names1 = {d.name: d for d in changed_wg1}
+    names2 = {d.name: d for d in changed_wg2}
+
+    for dish in changed_wg1:
+        try:
+            if dish == names2[dish.name]:
+                continue
+            diff.append(Change("MOVE", dish, names2[dish.name]))
+        except KeyError:
+            matches = difflib.get_close_matches(dish.name, names2)
+            if len(matches) == 1:  # TODO what if len > 1?
+                diff.append(Change("RENAME", dish, names2[matches[0]]))
+            else:
+                removed.append(Change("REMOVE", dish, None))
+
+    for dish in changed_wg2:
+        try:
+            if dish == names1[dish.name]:
+                continue
+            assert Change("MOVE", names1[dish.name], dish) in diff
+        except KeyError:
+            matches = difflib.get_close_matches(dish.name, names1)
+            if len(matches) == 1:
+                if not Change("RENAME", names1[matches[0]], dish) in diff:
+                    warnings.warn("Dish %s renamed to %s, but only found in one direction. Diff will be invalid!" %
+                                  (dish, matches[0]))  # TODO better handling of this case
+            elif removed:
+                diff.append(Change("REPLACE", removed.pop(0).from_dish, dish))
+            else:
+                diff.append(Change("ADD", None, dish))
+
+    return diff + removed
