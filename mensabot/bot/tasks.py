@@ -7,8 +7,8 @@ from datetime import datetime, time, timedelta
 
 from sqlalchemy import and_
 
-from mensabot.bot.ext import updater
 from mensabot.bot.command.mensa import send_menu_message
+from mensabot.bot.ext import updater
 from mensabot.db import CHATS, SQL_ENGINE
 from mensabot.mensa import clear_caches, get_menu_day
 
@@ -61,6 +61,6 @@ def schedule_notification(now=None):
 
 def schedule_clear_cache():
     now = datetime.now()
-    SCHED.enterabs(datetime.combine((now + timedelta(days=7 - now.weekday())).date(), time(1, 0)).timestamp(),
-                   1000, schedule_clear_cache)
+    next = datetime.combine((now + timedelta(days=1)).date(), time(2, 0))
+    SCHED.enterabs(next.timestamp(), 1000, schedule_clear_cache)
     clear_caches()
