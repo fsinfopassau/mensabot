@@ -2,6 +2,7 @@ import csv
 import functools
 import logging
 import warnings
+from collections import OrderedDict
 from datetime import date, datetime, time, timedelta
 from typing import Dict, List, NamedTuple, Tuple
 
@@ -44,14 +45,16 @@ def get_menu_week(week: int) -> List[dish]:
 
 def get_menu_day(dt: datetime = datetime.now()) -> List[dish]:
     """
-    Get all dishes for a certain day from the stwno website, sorted by their type.
+    Get all dishes for a certain day from the stwno website, deduplicated and sorted by their type.
 
     :param dt: the date(-time)
     :return: a list of dishes
     """
 
-    return sorted([d for d in get_menu_week(dt.date().isocalendar()[1]) if d.datum == dt.date()],
-                  key=lambda d: (MENU_TYPES.index(d.warengruppe[0]), d.warengruppe))
+    menu = [d for d in get_menu_week(dt.date().isocalendar()[1]) if d.datum == dt.date()]
+    menu = sorted(menu, key=lambda d: (MENU_TYPES.index(d.warengruppe[0]), d.warengruppe))
+    menu = reversed(OrderedDict((dish.name, dish) for dish in reversed(menu)).values())
+    return list(menu)
 
 
 def get_next_menu_date(dt: datetime = datetime.now()) -> datetime:
