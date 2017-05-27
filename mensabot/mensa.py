@@ -10,6 +10,7 @@ import regex as re
 import requests
 from bs4 import BeautifulSoup
 
+from mensabot.config import MENU_STORE
 from mensabot.mensa_menu import dish, parse_dish
 
 logger = logging.getLogger("mensabot.mensa")
@@ -26,9 +27,11 @@ LOCATIONS = {
 }
 PRICES_CATEGORIES = ["stud", "bed", "gast"]
 
+cache = {}
+change_listeners = []
 
-@functools.lru_cache()
-def get_menu_week(week: int) -> List[dish]:
+
+def get_menu_week(week: int, disable_cache=False) -> List[dish]:
     """
     Get all dishes for a certain week from the stwno website.
 
@@ -36,11 +39,41 @@ def get_menu_week(week: int) -> List[dish]:
     :return: a list of dishes
     """
 
+    if week in cache and not disable_cache:
+        dt, list = cache[week]
+        if datetime.now() - dt < timedelta(minutes=5):
+            return list
+    list = fetch_menu_week(week)
+    cache[week] = (datetime.now(), list)
+    return list
+
+
+def fetch_menu_week(week: int) -> List[dish]:
     r = requests.get("%s%s.csv" % (MENU_URL, week))
     if not r.ok:
         r = requests.get("%s%02s.csv" % (MENU_URL, week))
     r.raise_for_status()
-    return [parse_dish(row) for row in csv.DictReader(r.text.splitlines(), delimiter=';')]
+
+    text = r.text
+    # TODO remove
+    # from mensabot.format import KETCHUP
+    # text = re.sub("[Kk]artoffel", random.sample(KETCHUP, 1)[0], text)
+    # text = re.sub("0.90", "0.%d" % random.randint(1, 99), text)
+
+    with open("%s/%s.csv" % (MENU_STORE, week), "r+", encoding="iso8859_3") as f:
+        old = [parse_dish(row) for row in csv.DictReader(f.readlines(), delimiter=';')]
+        new = [parse_dish(row) for row in csv.DictReader(text.splitlines(), delimiter=';')]
+
+        if old == new:
+            return old
+        f.seek(0)
+        f.truncate()
+        f.writelines(text)
+
+    logger.debug("Menu changed!")
+    for l in change_listeners:
+        l(week, old, new)
+    return new
 
 
 def get_menu_day(dt: datetime = datetime.now()) -> List[dish]:
@@ -195,6 +228,6 @@ def get_semester_dates() -> List[Tuple[str, date]]:
 
 def clear_caches():
     logger.info("Clearing caches...")
-    for func in [get_menu_week, get_opening_times, get_semester_dates]:
+    for func in [get_opening_times, get_semester_dates]:
         logger.debug("Statistics for cache of {}: {}".format(func.__name__, func.cache_info()))
         func.cache_clear()

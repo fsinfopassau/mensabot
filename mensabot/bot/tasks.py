@@ -3,14 +3,14 @@ import math
 import sched
 import time as systime
 from contextlib import ExitStack, closing
-from datetime import datetime, time, timedelta
+from datetime import date, datetime, time, timedelta
 
 from sqlalchemy import and_
 
-from mensabot.bot.command.mensa import send_menu_message
+from mensabot.bot.command.mensa import mensa_notifications, send_menu_message
 from mensabot.bot.ext import updater
 from mensabot.db import CHATS, SQL_ENGINE
-from mensabot.mensa import clear_caches, get_menu_day
+from mensabot.mensa import clear_caches, get_menu_day, get_menu_week
 
 SCHED = sched.scheduler(systime.time, systime.sleep)
 SCHED_INTERVAL = 1
@@ -19,9 +19,15 @@ logger = logging.getLogger("mensabot.sched")
 
 
 def run_sched():
+    schedule_notification()
+    schedule_update_menu()
+    schedule_clear_cache()
+    schedule_clear_mensa_notifications()
+
     running = True
     while running:
         try:
+            logger.debug("Handing over to scheduler")
             SCHED.run(blocking=True)
         except KeyboardInterrupt:
             running = False
@@ -59,8 +65,22 @@ def schedule_notification(now=None):
             SCHED.enterabs(notify_time.timestamp(), 100, send_menu_message, [notify_time, row, row.id])
 
 
+def schedule_update_menu():
+    logger.debug("Fetching new menu")
+    SCHED.enter(30, 11, schedule_update_menu)
+    get_menu_week(date.today().isocalendar()[1], disable_cache=True)
+
+
 def schedule_clear_cache():
     now = datetime.now()
     next = datetime.combine((now + timedelta(days=1)).date(), time(2, 0))
     SCHED.enterabs(next.timestamp(), 1000, schedule_clear_cache)
     clear_caches()
+
+
+def schedule_clear_mensa_notifications():
+    logger.debug("Resetting mensa notifications")
+    now = datetime.now()
+    next = datetime.combine((now + timedelta(days=1)).date(), time(0, 0))
+    SCHED.enterabs(next.timestamp(), 1000, schedule_clear_mensa_notifications)
+    mensa_notifications.clear()

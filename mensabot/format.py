@@ -86,6 +86,14 @@ def get_mensa_formatted(dt, template=None, locale=None, price_category="stud"):
          "price_category": price_category})
 
 
+def get_mensa_diff_formatted(dt, diff, template=None, locale=None, price_category="stud"):
+    locale = locale or LANG[0]
+    template = template or locale
+    return JINJA2_ENV.get_template("{}/diff.md".format(template)).render(
+        {"diff": diff, "date": dt, "now": datetime.now(), "locale": locale,
+         "price_category": price_category})
+
+
 schedule = NamedTuple("schedule", [("open", time), ("close", time), ("day", datetime)])
 
 

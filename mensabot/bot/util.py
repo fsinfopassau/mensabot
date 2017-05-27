@@ -9,8 +9,9 @@ from mensabot.db import CHATS, SQL_ENGINE
 
 
 @contextmanager
-def chat_record(update):
-    id = update.message.chat.id
+def chat_record(id):
+    if not isinstance(id, int):  # object is a telegram update
+        id = id.message.chat.id
     with ExitStack() as s:
         conn = s.enter_context(closing(SQL_ENGINE.connect()))
         res = s.enter_context(closing(conn.execute(CHATS.select(CHATS.c.id == id))))
