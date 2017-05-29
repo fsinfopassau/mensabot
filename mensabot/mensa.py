@@ -10,7 +10,7 @@ import regex as re
 import requests
 from bs4 import BeautifulSoup
 
-from mensabot.config import MENU_STORE
+from mensabot.config_default import MENU_STORE
 from mensabot.mensa_menu import dish, parse_dish
 
 logger = logging.getLogger("mensabot.mensa")

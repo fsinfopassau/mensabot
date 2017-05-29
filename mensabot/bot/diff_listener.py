@@ -6,7 +6,7 @@ import sh
 from mensabot import mensa
 from mensabot.bot.command.mensa import mensa_notifications, send_menu_update
 from mensabot.bot.util import chat_record
-from mensabot.config import MENU_STORE
+from mensabot.config_default import MENU_STORE
 from mensabot.mensa_menu import generate_diff
 
 

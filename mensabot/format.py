@@ -9,7 +9,7 @@ from babel.dates import format_date, format_time
 from jinja2 import PackageLoader, TemplateNotFound
 from jinja2.sandbox import SandboxedEnvironment
 
-from mensabot import config
+from mensabot.config_default import DEPLOY_MODE
 from mensabot.mensa import LOCATIONS, NOT_OPEN, dish, get_menu_day, get_next_open, get_opening_times, is_holiday
 from mensabot.parse import LANG
 
@@ -137,4 +137,4 @@ def get_version():
         ).decode('ascii').strip()
     except NotADirectoryError:
         git_rev = "release"
-    return "{} {} {} [{}]".format(pkg_data.project_name.title(), pkg_data.version, git_rev, config.DEPLOY_MODE)
+    return "{} {} {} [{}]".format(pkg_data.project_name.title(), pkg_data.version, git_rev, DEPLOY_MODE)

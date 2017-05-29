@@ -1,0 +1,7 @@
+import os
+
+from .config import *
+
+IS_DEVELOPMENT = DEPLOY_MODE == "DEVELOPMENT"
+TELEGRAM_TOKEN = TOKENS[DEPLOY_MODE]
+MENU_STORE = os.path.abspath(MENU_STORE)
