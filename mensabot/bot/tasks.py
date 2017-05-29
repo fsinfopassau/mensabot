@@ -67,7 +67,7 @@ def schedule_notification(now=None):
 
 def schedule_update_menu():
     logger.debug("Fetching new menu")
-    SCHED.enter(30, 11, schedule_update_menu)
+    SCHED.enter(5 * 60, 11, schedule_update_menu)
     get_menu_week(date.today().isocalendar()[1], disable_cache=True)
 
 
@@ -81,6 +81,6 @@ def schedule_clear_cache():
 def schedule_clear_mensa_notifications():
     logger.debug("Resetting mensa notifications")
     now = datetime.now()
-    next = datetime.combine((now + timedelta(days=1)).date(), time(0, 0))
+    next = datetime.combine((now + timedelta(days=1)).date(), time(0, 30))
     SCHED.enterabs(next.timestamp(), 1000, schedule_clear_mensa_notifications)
     mensa_notifications.clear()

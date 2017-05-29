@@ -58,7 +58,7 @@ def __parse_name(str_in):
     def append_name(token):
         nonlocal kennz
         token = token.strip()
-        m = re.search(PATTERN_KENNZ, token)  # TODO also at end of string
+        m = re.search(PATTERN_KENNZ, token)
         if m:
             kennz += (s.strip() for s in m.group(1).split(","))
             token = re.sub(PATTERN_KENNZ, "", token)
