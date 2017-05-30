@@ -1,7 +1,11 @@
 {% import 'de/utils.md' as utils %}
-Speisekarte für Mittagsmensa {{ utils.date(date, now, locale) }} wurde geändert:
+{% set print_header=True %}
 {% for dish in diff %}
 {% if dish.diff|length != 1 or "warengruppe" not in dish.diff %}
+{% if print_header %}
+Speisekarte für Mittagsmensa {{ utils.date(date, now, locale) }} wurde geändert:
+{% set print_header=False %}
+{% endif %}
 {% if "name" in dish.diff %}
 - {{ dish.diff["name"][0] }} ➡️ *{{ dish.diff["name"][1] }}*
 {% elif not dish.from_dish %}

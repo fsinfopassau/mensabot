@@ -10,6 +10,7 @@ from mensabot.parse import parse_loc_date
 
 mensa_notifications = set()
 
+
 @ComHandlerFunc("mensa")
 def mensa(bot, update):
     try:
@@ -45,11 +46,10 @@ def send_menu_message(time, chat, chat_id):
 
 
 def send_menu_update(date, diff, chat, chat_id):
-    updater.bot.sendMessage(
-        chat_id=chat_id,
-        text=get_mensa_diff_formatted(
-            date, diff,
-            template=chat.template if chat else None,
-            locale=chat.locale if chat else None,
-            price_category=PRICES_CATEGORIES[chat.price_category if chat else 0]),
-        parse_mode=ParseMode.MARKDOWN)
+    text = get_mensa_diff_formatted(
+        date, diff,
+        template=chat.template if chat else None,
+        locale=chat.locale if chat else None,
+        price_category=PRICES_CATEGORIES[chat.price_category if chat else 0])
+    if text.strip():
+        updater.bot.sendMessage(chat_id=chat_id, text=text, parse_mode=ParseMode.MARKDOWN)

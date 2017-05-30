@@ -1,7 +1,11 @@
 {% import 'de/utils.md' as utils %}
-Menu for lunch mensa {{ utils.date(date, now, locale) }} changed:
+{% set print_header=True %}
 {% for dish in diff %}
 {% if dish.diff|length != 1 or "warengruppe" not in dish.diff %}
+{% if print_header %}
+Menu for lunch mensa {{ utils.date(date, now, locale) }} changed:
+{% set print_header=False %}
+{% endif %}
 {% if "name" in dish.diff %}
 - {{ dish.diff["name"][0] }} ➡️ *{{ dish.diff["name"][1] }}*
     Price: {{ "%1.2f€"|format(dish.to_dish[price_category]) }}
