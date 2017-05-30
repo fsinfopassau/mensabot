@@ -1,6 +1,7 @@
 import csv
 import functools
 import logging
+import os
 import warnings
 from collections import OrderedDict
 from datetime import date, datetime, time, timedelta
@@ -54,6 +55,7 @@ def fetch_menu_week(week: int) -> List[dish]:
         r = requests.get("%s%02s.csv" % (MENU_URL, week))
     r.raise_for_status()
 
+    os.makedirs(MENU_STORE, exist_ok=True)
     with open("%s/%s.csv" % (MENU_STORE, week), "a+", encoding="iso8859_3") as f:
         f.seek(0)
         old = [parse_dish(row) for row in csv.DictReader(f.readlines(), delimiter=';')]
@@ -61,7 +63,9 @@ def fetch_menu_week(week: int) -> List[dish]:
 
         if old == new:
             return old
-        f.truncate()
+
+        f.seek(0)
+        f.truncate(0)
         f.writelines(r.text)
 
     logger.debug("Menu changed!")

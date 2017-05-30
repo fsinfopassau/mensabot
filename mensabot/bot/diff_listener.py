@@ -13,8 +13,7 @@ from mensabot.mensa_menu import generate_diff
 def commit_diff(week, old, new):
     git = sh.git.bake(_cwd=MENU_STORE)
 
-    if not os.path.isdir(MENU_STORE):
-        os.mkdir(MENU_STORE)
+    if not os.path.isdir(os.path.join(MENU_STORE, ".git")):
         git.init()
         git.remote.add("origin", "git@github.com:N-Coder/mensabot-crawler.git")
 
