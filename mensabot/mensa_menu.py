@@ -4,7 +4,7 @@ import re
 import warnings
 from collections import Counter
 from datetime import datetime
-from typing import List, NamedTuple
+from typing import List, NamedTuple, Optional
 
 import regex as re
 
@@ -99,11 +99,11 @@ def __parse_name(str_in):
 ########################################################################################################################
 
 class Change(object):
-    def __init__(self, type, from_dish, to_dish):
+    def __init__(self, type: str, from_dish: Optional[dish], to_dish: Optional[dish]):
         assert from_dish != to_dish
-        self.type = type
-        self.from_dish = from_dish
-        self.to_dish = to_dish
+        self.type = type  # type: str
+        self.from_dish = from_dish  # type: Optional[dish]
+        self.to_dish = to_dish  # type: Optional[dish]
 
         if not self.from_dish or not self.to_dish:
             self.diff = {}

@@ -1,9 +1,11 @@
 import csv
 import os
 import subprocess
+from datetime import datetime
 
 from more_itertools import pairwise
 
+from mensabot.format import get_mensa_diff_formatted
 from mensabot.mensa import PRICES_CATEGORIES
 from mensabot.mensa_menu import generate_diff, parse_dish
 
@@ -49,6 +51,7 @@ def print_diff(diff):
 def main():
     for file in os.listdir("."):
         if file.endswith(".csv"):
+            print(file)
             commits = subprocess.run(
                 ["git", "log", "--format=%H", "--", file], check=True, stdout=subprocess.PIPE) \
                 .stdout.decode("utf-8").split("\n")
@@ -58,10 +61,25 @@ def main():
                 print_diff(diff)
 
 
+def test_format():
+    diff = generate_diff(  # major changes
+        parse_file(get_file_at_commit("ddd253185f9197c3102b1388df5f3ca07a50e0a1", "22.csv")),
+        parse_file(get_file_at_commit("cbbf2377dad49b98154f69d321ba359ac83c6888", "22.csv")))
+    # diff = generate_diff(  # only move
+    #     parse_file(get_file_at_commit("df6dceb30d229d2e361dae43a92aead70d36efc8", "22.csv")),
+    #     parse_file(get_file_at_commit("fd039b7b448487d8d04a84a308c0cac8eb6bde62", "22.csv")))
+    print_diff(diff)
+    print()
+    print(get_mensa_diff_formatted(datetime.now(), diff, template="de"))
+    print()
+    print(get_mensa_diff_formatted(datetime.now(), diff, template="en"))
+    print()
+    print(get_mensa_diff_formatted(datetime.now(), diff, template="de/short"))
+
+
 if __name__ == "__main__":
     os.chdir("/home/niko/Sync/Uni/Fachschaft/Code/mensabot/crawler/store")
     main()
-
 
 
 # if __name__ == "__main__":
