@@ -27,18 +27,18 @@ def mensa(bot, update):
                         text="%s. Try 'today', 'tomorrow', 'Friday' or a date." % e)
         return
 
-    if dt.date() == date.today():
-        mensa_notifications.add(update.message.chat_id)
-
     with chat_record(update) as chat:
         send_menu_message(dt, chat, update.message.chat_id)
 
 
-def send_menu_message(time, chat, chat_id):
+def send_menu_message(dt, chat, chat_id):
+    if dt.date() == date.today():
+        mensa_notifications.add(chat_id)
+
     updater.bot.sendMessage(
         chat_id=chat_id,
         text=get_mensa_formatted(
-            time,
+            dt,
             template=chat.template if chat else None,
             locale=chat.locale if chat else None,
             price_category=PRICES_CATEGORIES[chat.price_category if chat else 0]),
