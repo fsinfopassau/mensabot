@@ -8,8 +8,8 @@
 {% elif not dish.from_dish %}
 {{ utils.icon_dish(dish.to_dish.warengruppe[0]) }}🆕 *{{ dish.to_dish.name }}*
     Price: {{ "%1.2f€"|format(dish.to_dish[price_category]) }}
-    Labels: {{ utils.icons_kennz(dish.diff["kennz"][1]) }}
-    Additives: {{ dish.diff["zusatz"][1]|join(",") }}
+    Labels: {{ utils.icons_kennz(dish.to_dish.kennz) }}
+    Additives: {{ dish.to_dish.zusatz|join(",") }}
 {% elif not dish.to_dish %}
 {{ utils.icon_dish(dish.from_dish.warengruppe[0]) }}❎ *{{ dish.from_dish.name }}*
 {% else %}
