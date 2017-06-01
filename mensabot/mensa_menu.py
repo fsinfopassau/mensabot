@@ -38,19 +38,21 @@ def parse_dish(row: dict) -> dish:
     del row['tag']
     del row['preis']
 
-    names, zusatz, kennz = __parse_name(row["name"])
-    row["name"] = " ".join(names)
-    row['zusatz'] += Counter(zusatz)
-    row['kennz'] += Counter(kennz)
-
     # fix for fucked up Salatmixes
     if row["name"].startswith("Salatmix"):
         row["name"] = re.match("Salatmix( [IV]+)?", row["name"]).group()
+    else:
+        names, zusatz, kennz = __parse_name(row["name"])
+        row["name"] = " ".join(names)
+        row['zusatz'] += Counter(zusatz)
+        row['kennz'] += Counter(kennz)
 
     return dish(**row)
 
 
 def __parse_name(str_in):
+    str_in = re.sub("\(+", "(", re.sub("\)+", ")", str_in))
+
     name = []
     kennz = []
     zusatz = []
@@ -77,13 +79,13 @@ def __parse_name(str_in):
     for c in str_in:
         if c == "(":
             if brackets:
-                return "??", ["??"], ["??"]
+                return str_in, ["??"], ["??"]
             append_name(token)
             token = ""
             brackets = True
         elif c == ")":
             if not brackets:
-                return "??", ["??"], ["??"]
+                return str_in, ["??"], ["??"]
             append_zusatz(token)
             token = ""
             brackets = False

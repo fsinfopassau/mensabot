@@ -28,7 +28,7 @@ def notify_diff(week, old, new):
     today = now.date()
 
     diff = generate_diff(old, new)
-    diff = [d for d in diff if d.dish().datum.date() == today]
+    diff = [d for d in diff if d.dish().datum == today]
     diff = sorted(diff, key=lambda d: (MENU_TYPES.index(d.dish().warengruppe[0]), d.dish().warengruppe))
 
     for chat_id in mensa_notifications:
