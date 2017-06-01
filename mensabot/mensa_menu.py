@@ -121,6 +121,9 @@ class Change(object):
             else:
                 assert from_dish.warengruppe != to_dish.warengruppe
 
+    def dish(self) -> dish:
+        return self.to_dish if self.to_dish else self.from_dish
+
     def __eq__(self, other):
         return isinstance(other, Change) and \
                self.type == other.type and \

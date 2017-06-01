@@ -8,7 +8,7 @@ from mensabot.bot.command.mensa import mensa_notifications, send_menu_update
 from mensabot.bot.util import chat_record
 from mensabot.config_default import MENU_STORE
 from mensabot.mensa import MENU_TYPES
-from mensabot.mensa_menu import Change, generate_diff
+from mensabot.mensa_menu import generate_diff
 
 
 def commit_diff(week, old, new):
@@ -23,19 +23,17 @@ def commit_diff(week, old, new):
     # git.push()
 
 
-def _diff_order_key(diff: Change):
-    wg = diff.to_dish.warengruppe if diff.to_dish else diff.from_dish.warengruppe
-    return MENU_TYPES.index(wg[0]), wg
-
-
 def notify_diff(week, old, new):
+    now = datetime.now()
+    today = now.date()
+
     diff = generate_diff(old, new)
-    diff = sorted(diff, key=_diff_order_key)
-    # print_diff(diff)
+    diff = [d for d in diff if d.dish().datum.date() == today]
+    diff = sorted(diff, key=lambda d: (MENU_TYPES.index(d.dish().warengruppe[0]), d.dish().warengruppe))
 
     for chat_id in mensa_notifications:
         with chat_record(chat_id) as chat:
-            send_menu_update(datetime.now(), diff, chat, chat_id)
+            send_menu_update(now, diff, chat, chat_id)
 
 
 def install_listener():
