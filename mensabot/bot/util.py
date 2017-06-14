@@ -1,7 +1,7 @@
 import traceback
 from contextlib import ExitStack, closing, contextmanager
 
-from telegram import MessageEntity, ParseMode
+from telegram import Message, MessageEntity, ParseMode, Update
 from telegram.ext import CommandHandler
 
 from mensabot.bot.ext import dispatcher
@@ -10,8 +10,12 @@ from mensabot.db import CHATS, SQL_ENGINE
 
 @contextmanager
 def chat_record(id):
-    if not isinstance(id, int):  # object is a telegram update
+    if isinstance(id, Message):
+        id = id.chat.id
+    elif isinstance(id, Update):
         id = id.message.chat.id
+    elif not isinstance(id, int):
+        raise ValueError("ID '%s' is not an int." % id)
     with ExitStack() as s:
         conn = s.enter_context(closing(SQL_ENGINE.connect()))
         res = s.enter_context(closing(conn.execute(CHATS.select(CHATS.c.id == id))))
