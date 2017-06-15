@@ -12,14 +12,14 @@ metadata = MetaData()
 CHATS = Table(
     'chats', metadata,
     Column('id', Integer, primary_key=True),
-    Column('price_category', Integer, server_default="0"),
-    Column('template', String, server_default="NULL"),
-    Column('locale', String, server_default="NULL"),
-    Column('push_time', Time, server_default="NULL"),
-    Column('push_sound', Boolean, server_default="1"),
-    Column('notify_change', Boolean, server_default="0"),
-    Column('notify_change_sound', Boolean, server_default="0"),
-    Column('update_menu', Boolean, server_default="0"),
+    Column('price_category', Integer, server_default=text("0")),
+    Column('template', String, server_default=text("NULL")),
+    Column('locale', String, server_default=text("NULL")),
+    Column('push_time', Time, server_default=text("NULL")),
+    Column('push_sound', Boolean, server_default=text("1")),
+    Column('notify_change', Boolean, server_default=text("0")),
+    Column('notify_change_sound', Boolean, server_default=text("0")),
+    Column('update_menu', Boolean, server_default=text("0")),
 )
 
 SQL_ENGINE = create_engine('sqlite:///mensabot.sqlite', echo=ECHO_SQL)

@@ -118,4 +118,11 @@ def get_config(bot, update):
         res = execute(
             CHATS.select().where(CHATS.c.id == id)
         ).fetchone()
+        if not res:
+            execute(
+                CHATS.insert().values(id=id)
+            )
+            res = execute(
+                CHATS.select().where(CHATS.c.id == id)
+            ).fetchone()
         bot.sendMessage(chat_id=update.message.chat_id, text="%s: %s" % (fun, res[fun]))
