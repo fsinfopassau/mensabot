@@ -2,14 +2,13 @@ import logging
 import math
 import sched
 import time as systime
-from contextlib import ExitStack, closing
 from datetime import date, datetime, time, timedelta
 
 from sqlalchemy import and_
 
 from mensabot.bot.command.mensa import mensa_notifications, send_menu_message
 from mensabot.bot.ext import updater
-from mensabot.db import CHATS, SQL_ENGINE
+from mensabot.db import CHATS, connection
 from mensabot.mensa import clear_caches, get_menu_day, get_menu_week
 
 SCHED = sched.scheduler(systime.time, systime.sleep)
@@ -52,13 +51,12 @@ def schedule_notification(now=None):
 
     SCHED.enterabs(later.timestamp(), 10, schedule_notification, [later])
 
-    with ExitStack() as s:
-        conn = s.enter_context(closing(SQL_ENGINE.connect()))
-        res = s.enter_context(closing(conn.execute(
+    with connection() as (conn, execute):
+        res = execute(
             CHATS.select()
                 .where(and_(CHATS.c.push_time >= now.time(), CHATS.c.push_time < later.time()))
                 .order_by(CHATS.c.push_time.asc())
-        )))
+        )
         for row in res:
             notify_time = datetime.combine(now.date(), row.push_time)
             logger.debug("Scheduling notification to {} for {:%H:%M}".format(row, notify_time))

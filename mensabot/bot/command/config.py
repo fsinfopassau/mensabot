@@ -1,9 +1,7 @@
-from contextlib import ExitStack, closing
 from datetime import datetime
-from typing import Any, Callable, NamedTuple
 
 from mensabot.bot.util import ComHandlerFunc, get_args
-from mensabot.db import CHATS, SQL_ENGINE
+from mensabot.db import CHATS, connection
 from mensabot.format import check_legal_template
 from mensabot.mensa import PRICES_CATEGORIES
 from mensabot.parse import LANG
@@ -88,16 +86,15 @@ def set_config(bot, update):
         bot.sendMessage(chat_id=update.message.chat_id, text=str(e))
         return
 
-    with ExitStack() as s:
+    with connection() as (conn, execute):
         val = {fun: arg}
-        conn = s.enter_context(closing(SQL_ENGINE.connect()))
-        res = s.enter_context(closing(conn.execute(
+        res = execute(
             CHATS.update().values(**val).where(CHATS.c.id == id)
-        )))
+        )
         if res.rowcount != 1:
-            s.enter_context(closing(conn.execute(
+            execute(
                 CHATS.insert().values(id=id, **val)
-            )))
+            )
     bot.sendMessage(chat_id=update.message.chat_id, text="Updated %s to '%s'." % (fun, arg))
 
 
@@ -117,9 +114,8 @@ def get_config(bot, update):
         ))
         return
 
-    with ExitStack() as s:
-        conn = s.enter_context(closing(SQL_ENGINE.connect()))
-        res = s.enter_context(closing(conn.execute(
+    with connection() as (conn, execute):
+        res = execute(
             CHATS.select().where(CHATS.c.id == id)
-        ))).fetchone()
-        bot.sendMessage(chat_id=update.message.chat_id, text="%s: %s" % (fun, res[fun] or None))
+        ).fetchone()
+        bot.sendMessage(chat_id=update.message.chat_id, text="%s: %s" % (fun, res[fun]))

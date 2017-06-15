@@ -1,5 +1,7 @@
 import os
 
+ECHO_SQL = False
+
 from .config import *
 
 IS_DEVELOPMENT = DEPLOY_MODE == "DEVELOPMENT"

@@ -1,11 +1,11 @@
 import traceback
-from contextlib import ExitStack, closing, contextmanager
+from contextlib import contextmanager
 
 from telegram import Message, MessageEntity, ParseMode, Update
 from telegram.ext import CommandHandler
 
 from mensabot.bot.ext import dispatcher
-from mensabot.db import CHATS, SQL_ENGINE
+from mensabot.db import CHATS, connection
 
 
 @contextmanager
@@ -16,10 +16,10 @@ def chat_record(id):
         id = id.message.chat.id
     elif not isinstance(id, int):
         raise ValueError("ID '%s' is not an int." % id)
-    with ExitStack() as s:
-        conn = s.enter_context(closing(SQL_ENGINE.connect()))
-        res = s.enter_context(closing(conn.execute(CHATS.select(CHATS.c.id == id))))
-        yield res.fetchone()
+    with connection() as (conn, execute):
+        res = execute(CHATS.select(CHATS.c.id == id))
+        row = res.fetchone()
+        yield row
 
 
 def get_args(update):
