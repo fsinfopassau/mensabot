@@ -24,10 +24,11 @@ def run_sched():
     schedule_clear_mensa_notifications()
 
     running = True
+    logger.debug("Handing over to scheduler")
     while running:
         try:
-            logger.debug("Handing over to scheduler")
-            SCHED.run(blocking=True)
+            delay = SCHED.run(blocking=False)
+            systime.sleep(min(delay, 1))
         except KeyboardInterrupt:
             running = False
             logger.info("KeyboardInterrupt, shutting down.", exc_info=1)

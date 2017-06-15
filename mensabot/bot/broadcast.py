@@ -4,6 +4,7 @@ import os
 from telegram import ParseMode
 
 from mensabot.bot.ext import updater
+from mensabot.bot.tasks import SCHED
 
 
 def main():
@@ -32,3 +33,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    SCHED.run()
