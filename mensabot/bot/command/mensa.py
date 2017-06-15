@@ -39,6 +39,7 @@ def send_menu_message(dt, chat, chat_id):
             template=chat.template if chat else None,
             locale=chat.locale if chat else None,
             price_category=PRICES_CATEGORIES[chat.price_category if chat else 0]),
+        disable_notification=not chat.push_sound,
         parse_mode=ParseMode.MARKDOWN)
 
     if dt.date() == date.today():
@@ -52,7 +53,8 @@ def send_menu_update(dt, diff, chat):
         locale=chat.locale if chat else None,
         price_category=PRICES_CATEGORIES[chat.price_category if chat else 0])
     if text.strip():
-        updater.bot.sendMessage(chat_id=chat.id, text=text, parse_mode=ParseMode.MARKDOWN)
+        updater.bot.sendMessage(chat_id=chat.id, text=text, parse_mode=ParseMode.MARKDOWN,
+                                disable_notification=not chat.notify_change_sound)
 
 
 def edit_menu_message(dt, msg, menu, chat):

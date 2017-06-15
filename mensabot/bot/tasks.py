@@ -56,11 +56,11 @@ def schedule_notification(now=None):
         conn = s.enter_context(closing(SQL_ENGINE.connect()))
         res = s.enter_context(closing(conn.execute(
             CHATS.select()
-                .where(and_(CHATS.c.notification_time >= now.time(), CHATS.c.notification_time < later.time()))
-                .order_by(CHATS.c.notification_time.asc())
+                .where(and_(CHATS.c.push_time >= now.time(), CHATS.c.push_time < later.time()))
+                .order_by(CHATS.c.push_time.asc())
         )))
         for row in res:
-            notify_time = datetime.combine(now.date(), row.notification_time)
+            notify_time = datetime.combine(now.date(), row.push_time)
             logger.debug("Scheduling notification to {} for {:%H:%M}".format(row, notify_time))
             SCHED.enterabs(notify_time.timestamp(), 100, send_menu_message, [notify_time, row, row.id])
 

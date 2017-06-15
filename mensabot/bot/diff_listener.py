@@ -4,7 +4,7 @@ from datetime import datetime
 import sh
 
 from mensabot import mensa
-from mensabot.bot.command.mensa import mensa_notifications, send_menu_update, edit_menu_message
+from mensabot.bot.command.mensa import edit_menu_message, mensa_notifications, send_menu_update
 from mensabot.bot.util import chat_record
 from mensabot.config_default import MENU_STORE
 from mensabot.mensa import MENU_TYPES
@@ -33,8 +33,11 @@ def notify_diff(week, old, new):
 
     for msg in mensa_notifications:
         with chat_record(msg) as chat:
-            send_menu_update(now, diff, chat)
-            edit_menu_message(now, msg, new, chat)
+            if chat.notify_change:
+                send_menu_update(now, diff, chat)
+            if chat.update_menu:
+                edit_menu_message(now, msg, new, chat)
+
 
 def install_listener():
     mensa.change_listeners.append(notify_diff)

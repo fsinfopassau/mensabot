@@ -1,5 +1,6 @@
 from contextlib import ExitStack, closing
 from datetime import datetime
+from typing import Any, Callable, NamedTuple
 
 from mensabot.bot.util import ComHandlerFunc, get_args
 from mensabot.db import CHATS, SQL_ENGINE
@@ -38,13 +39,29 @@ def check_notification_time(x):
             raise ValueError("Could not parse time '%s', try e.g. '11:15'. (reason was %s)" % (x, e))
 
 
-CONFIG_RESET = ["none", "null", "default", "reset", "-"]
+def check_boolean(x):
+    if x is None:
+        return None
+    x = str(x).lower()
+    if x in ['true', '1', 't', 'y', 'yes', 'j', 'ja']:
+        return True
+    elif x in ['false', '0', 'f', 'n', 'no', 'nein']:
+        return False
+    else:
+        raise ValueError("Could not parse boolean '%s'" % x)
+
+
+CONFIG_RESET = ["none", "null", "default", "reset", "-", "/"]
 
 CONFIG_OPTIONS = {
     "template": check_legal_template,
     "price_category": check_price_category,
     "locale": check_locale,
-    "notification_time": check_notification_time,
+    "push_time": check_notification_time,  # time for pushing the menu notifications
+    "push_sound": check_boolean,  # muted menu notifications
+    "notify_change": check_boolean,  # change notifications
+    "notify_change_sound": check_boolean,  # muted change notifications
+    "update_menu": check_boolean,  # menu editing
 }
 
 
