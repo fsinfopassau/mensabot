@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from codecs import open
 from os import path
 
@@ -23,7 +25,8 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "mensabot = mensabot.bot.main:main"
+            "mensabot = mensabot.bot.main:main",
+            "mensabot-bc = mensabot.bot.broadcast:main"
         ]
     },
     packages=find_packages(),
