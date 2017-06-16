@@ -5,6 +5,7 @@ import sh
 
 from mensabot import mensa
 from mensabot.bot.command.mensa import edit_menu_message, mensa_notifications, send_menu_update
+from mensabot.bot.tasks import SCHED
 from mensabot.bot.util import chat_record
 from mensabot.config_default import MENU_STORE
 from mensabot.mensa import MENU_TYPES
@@ -40,5 +41,5 @@ def notify_diff(week, old, new):
 
 
 def install_listener():
-    mensa.change_listeners.append(notify_diff)
-    mensa.change_listeners.append(commit_diff)
+    mensa.change_listeners.append(lambda *args, **kwargs: SCHED.enter(0, 150, notify_diff, args, kwargs))
+    mensa.change_listeners.append(lambda *args, **kwargs: SCHED.enter(0, 150, commit_diff, args, kwargs))

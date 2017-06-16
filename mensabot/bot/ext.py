@@ -23,12 +23,17 @@ def __sendMessage(*args, **kwargs):
     retries = kwargs.pop("__sendMessage_retries", 0)
 
     try:
-        return old_sm(**kwargs)
+        msg = old_sm(**kwargs)
+        cb = kwargs.pop("callback", None)
+        if cb:
+            cb(msg)
+        return msg
 
     except RetryAfter as e:  # schedule retry after e.retry_after
         kwargs["__sendMessage_retries"] = retries + 1
         logger.warning("Message rate limit exceeded, retrying later.", exc_info=e)
         SCHED.enter(e.retry_after, 120, updater.bot.sendMessage, kwargs=kwargs)
+        return e
 
     except (TimedOut, NetworkError) as e:  # handle slow connection problems and handle other connection problems
         if retries <= 8:
@@ -36,6 +41,7 @@ def __sendMessage(*args, **kwargs):
             delay = 2 ** retries
             logger.warning("Network problems, retrying in %d seconds." % delay, exc_info=e)
             SCHED.enter(delay, 120, updater.bot.sendMessage, kwargs=kwargs)
+            return e
         else:
             raise
 
@@ -47,6 +53,7 @@ def __sendMessage(*args, **kwargs):
             )
         kwargs["chat_id"] = e.new_chat_id
         SCHED.enter(1, 120, updater.bot.sendMessage, kwargs=kwargs)
+        return e
 
     except Unauthorized as e:  # remove update.message.chat_id from conversation list
         logger.warning("User stopped bot, removing from database.", exc_info=e)

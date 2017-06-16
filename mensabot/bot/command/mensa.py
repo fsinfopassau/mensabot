@@ -1,6 +1,7 @@
 from datetime import date, datetime, timedelta
 
 from telegram import ParseMode
+from telegram.error import BadRequest
 
 from mensabot.bot.ext import updater
 from mensabot.bot.util import ComHandlerFunc, chat_record, get_args
@@ -40,10 +41,8 @@ def send_menu_message(dt, chat, chat_id):
             locale=chat.locale if chat else None,
             price_category=PRICES_CATEGORIES[chat.price_category if chat else 0]),
         disable_notification=not chat.push_sound,
-        parse_mode=ParseMode.MARKDOWN)
-
-    if dt.date() == date.today():
-        mensa_notifications.append(msg)
+        parse_mode=ParseMode.MARKDOWN,
+        callback=mensa_notifications.append if dt.date() == date.today() else None)
 
 
 def send_menu_update(dt, diff, chat):
@@ -59,11 +58,17 @@ def send_menu_update(dt, diff, chat):
 
 def edit_menu_message(dt, msg, menu, chat):
     text = get_mensa_formatted(
-            dt,
-            template=chat.template if chat else None,
-            locale=chat.locale if chat else None,
-            price_category=PRICES_CATEGORIES[chat.price_category if chat else 0])
+        dt,
+        template=chat.template if chat else None,
+        locale=chat.locale if chat else None,
+        price_category=PRICES_CATEGORIES[chat.price_category if chat else 0])
     if text != msg.text:
-        updater.bot.editMessageText(
-            message_id=msg.message_id, chat_id=chat.id,
-            text=text, parse_mode=ParseMode.MARKDOWN)
+        try:
+            updater.bot.editMessageText(
+                message_id=msg.message_id, chat_id=chat.id,
+                text=text, parse_mode=ParseMode.MARKDOWN)
+        except BadRequest as e:
+            if e.message == "Message is not modified":
+                pass
+            else:
+                raise
