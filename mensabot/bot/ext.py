@@ -23,7 +23,7 @@ def __sendMessage(*args, **kwargs):
     retries = kwargs.pop("__sendMessage_retries", 0)
 
     try:
-        old_sm(**kwargs)
+        return old_sm(**kwargs)
 
     except RetryAfter as e:  # schedule retry after e.retry_after
         kwargs["__sendMessage_retries"] = retries + 1
