@@ -58,11 +58,12 @@ def send_menu_update(dt, diff, chat):
 
 
 def edit_menu_message(dt, msg, menu, chat):
-    updater.bot.editMessageText(
-        message_id=msg.message_id, chat_id=chat.id,
-        text=get_mensa_formatted(
+    text = get_mensa_formatted(
             dt,
             template=chat.template if chat else None,
             locale=chat.locale if chat else None,
-            price_category=PRICES_CATEGORIES[chat.price_category if chat else 0]),
-        parse_mode=ParseMode.MARKDOWN)
+            price_category=PRICES_CATEGORIES[chat.price_category if chat else 0])
+    if text != msg.text:
+        updater.bot.editMessageText(
+            message_id=msg.message_id, chat_id=chat.id,
+            text=text, parse_mode=ParseMode.MARKDOWN)
