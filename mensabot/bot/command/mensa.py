@@ -17,10 +17,7 @@ def mensa(bot, update):
     try:
         loc, dt = parse_loc_date(get_args(update))
         if not dt:
-            dt = datetime.now()
-            if dt.hour > 15:
-                dt += timedelta(days=1)
-            dt = get_next_menu_date(dt)
+            dt = default_menu_date()
         if loc:
             raise ValueError("Currently, only default location is supported")
     except ValueError as e:
@@ -30,6 +27,14 @@ def mensa(bot, update):
 
     with chat_record(update) as chat:
         send_menu_message(dt, chat, update.message.chat_id)
+
+
+def default_menu_date():
+    dt = datetime.now()
+    if dt.hour > 15:
+        dt += timedelta(days=1)
+    dt = get_next_menu_date(dt)
+    return dt
 
 
 def send_menu_message(dt, chat, chat_id):

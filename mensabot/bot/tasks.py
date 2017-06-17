@@ -6,7 +6,7 @@ from datetime import date, datetime, time, timedelta
 
 from sqlalchemy import and_
 
-from mensabot.bot.command.mensa import mensa_notifications, send_menu_message
+from mensabot.bot.command.mensa import mensa_notifications, send_menu_message, default_menu_date
 from mensabot.bot.ext import updater
 from mensabot.db import CHATS, connection
 from mensabot.mensa import clear_caches, get_menu_day, get_menu_week
@@ -61,7 +61,7 @@ def schedule_notification(now=None):
         for row in res:
             notify_time = datetime.combine(now.date(), row.push_time)
             logger.debug("Scheduling notification to {} for {:%H:%M}".format(row, notify_time))
-            SCHED.enterabs(notify_time.timestamp(), 100, send_menu_message, [notify_time, row, row.id])
+            SCHED.enterabs(notify_time.timestamp(), 100, lambda: send_menu_message(default_menu_date(), row, row.id))
 
 
 def schedule_update_menu():
