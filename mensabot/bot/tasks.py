@@ -47,8 +47,8 @@ def schedule_notification(now=None):
     if not get_menu_day(now):
         later = (later + timedelta(days=1)).replace(hour=0, minute=0)
         logger.debug("Not sending any notifications at {:%Y-%m-%d %H:%M} as no menu is available".format(now))
-    else:
-        logger.debug("Scheduling notifications between {:%H:%M} and {:%H:%M}".format(now, later))
+    # else:
+    #     logger.debug("Scheduling notifications between {:%H:%M} and {:%H:%M}".format(now, later))
 
     SCHED.enterabs(later.timestamp(), 10, schedule_notification, [later])
 

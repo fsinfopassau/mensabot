@@ -225,7 +225,7 @@ def get_semester_dates() -> List[Tuple[str, date]]:
 
 
 def clear_caches():
-    logger.info("Clearing caches...")
+    logger.debug("Clearing caches...")
     for func in [get_opening_times, get_semester_dates]:
         logger.debug("Statistics for cache of {}: {}".format(func.__name__, func.cache_info()))
         func.cache_clear()

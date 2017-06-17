@@ -42,6 +42,7 @@ setup(
         'babel',
         'python-telegram-bot',
         'sqlalchemy',
-        'sh'
+        'sh',
+        'pyyaml'
     ]
 )

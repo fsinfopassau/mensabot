@@ -4,12 +4,10 @@ from mensabot.bot.command import init_commands
 from mensabot.bot.diff_listener import install_listener
 from mensabot.bot.ext import updater
 from mensabot.bot.tasks import run_sched
+from mensabot.config_default import configure_logging
 from mensabot.format import get_version
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
-# logging.getLogger("requests.packages.urllib3.connectionpool").setLevel(logging.INFO)
-logging.getLogger("telegram.bot").setLevel(logging.INFO)
-logging.getLogger("sh").setLevel(logging.INFO)
+configure_logging()
 logger = logging.getLogger("mensabot.bot")
 
 

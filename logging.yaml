@@ -1,0 +1,58 @@
+version: 1
+
+filters:
+  ends_with_brace:
+    (): mensabot.logging.ends_with_brace
+
+formatters:
+  simple:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+
+handlers:
+  debug:
+    class: logging.handlers.SysLogHandler
+    level: DEBUG
+    address: /dev/log
+
+#  debug:
+#    class: logging.handlers.RotatingFileHandler
+#    maxBytes: 104857600 # 1024 * 1024 * 100
+#    backupCount: 1
+#    level: DEBUG
+#    formatter: simple
+#    filename: log/debug.log
+
+  error:
+    class: logging.handlers.WatchedFileHandler
+    level: WARNING
+    formatter: simple
+    filename: log/error.log
+
+  access:
+    class: logging.handlers.TimedRotatingFileHandler
+    level: DEBUG
+    formatter: simple
+    filters: [ends_with_brace]
+    filename: log/access.log
+    when: midnight
+    backupCount: 7
+
+  console:
+    class: logging.StreamHandler
+    formatter: simple
+    level: INFO
+    stream: ext://sys.stdout
+
+loggers:
+  telegram.bot:
+    handlers: [access]
+    propagate: False
+
+  telegram.ext.dispatcher:
+    handlers: [access]
+
+root:
+  level: DEBUG
+  handlers: [error, debug, console]
+
+disable_existing_loggers: False
