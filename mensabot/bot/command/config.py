@@ -18,7 +18,7 @@ def check_price_category(x):
 
 def check_locale(x):
     if x is None:
-        return LANG[0]
+        return None
     idx = LANG.index(x)
     if idx < 0:
         raise ValueError("Unknown locale '%s'. Try 'de' or 'en'." % x)

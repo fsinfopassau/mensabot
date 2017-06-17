@@ -12,6 +12,7 @@ logger = logging.getLogger("mensabot.bot")
 
 
 def main():
+    logger.info("Starting mensabot")
     init_commands()
     install_listener()
     updater.start_polling()
