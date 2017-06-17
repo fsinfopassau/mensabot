@@ -119,7 +119,7 @@ def get_config(bot, update):
                 CHATS.select().where(CHATS.c.id == id)
             ).fetchone()
 
-        if len(args) == 1:
+        if len(args) == 1 and args[0]:
             fun, = args
             if fun not in CONFIG_OPTIONS.keys():
                 bot.sendMessage(chat_id=update.message.chat_id,
