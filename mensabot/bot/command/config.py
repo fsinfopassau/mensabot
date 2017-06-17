@@ -102,16 +102,9 @@ def set_config(bot, update):
 def get_config(bot, update):
     id = update.message.chat.id
     args = get_args(update)
-    if len(args) != 1:
+    if len(args) > 1:
         bot.sendMessage(chat_id=update.message.chat_id,
                         text="Could not parse args '%s'. Enter the name of a config option." % " ".join(args))
-        return
-    fun, = args
-
-    if fun not in CONFIG_OPTIONS.keys():
-        bot.sendMessage(chat_id=update.message.chat_id, text="'{}' is not a valid config option. Try {}.".format(
-            fun, ", ".join(CONFIG_OPTIONS.keys())
-        ))
         return
 
     with connection() as (conn, execute):
@@ -125,4 +118,16 @@ def get_config(bot, update):
             res = execute(
                 CHATS.select().where(CHATS.c.id == id)
             ).fetchone()
-        bot.sendMessage(chat_id=update.message.chat_id, text="%s: %s" % (fun, res[fun]))
+
+        if len(args) == 1:
+            fun, = args
+            if fun not in CONFIG_OPTIONS.keys():
+                bot.sendMessage(chat_id=update.message.chat_id,
+                                text="'{}' is not a valid config option. Try {}.".format(
+                                    fun, ", ".join(CONFIG_OPTIONS.keys())
+                                ))
+            else:
+                bot.sendMessage(chat_id=update.message.chat_id, text="%s: %s" % (fun, res[fun]))
+        else:
+            bot.sendMessage(chat_id=update.message.chat_id,
+                            text="\n".join("%s: %s" % (fun, res[fun]) for fun in CONFIG_OPTIONS.keys()))
