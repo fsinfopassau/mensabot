@@ -27,6 +27,7 @@ def commit_diff(week, old, new):
 def notify_diff(week, old, new):
     now = datetime.now()
     today = now.date()
+    dedup = set()
 
     diff = generate_diff(old, new)
     diff = [d for d in diff if d.dish().datum == today]
@@ -34,7 +35,8 @@ def notify_diff(week, old, new):
 
     for msg in mensa_notifications:
         with chat_record(msg) as chat:
-            if chat.notify_change:
+            if chat.notify_change and chat.id not in dedup:
+                dedup.add(chat.id)
                 send_menu_update(now, diff, chat)
             if chat.update_menu:
                 edit_menu_message(now, msg, new, chat)
