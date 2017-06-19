@@ -45,7 +45,7 @@ def send_menu_message(dt, chat, chat_id):
             template=chat.template if chat else None,
             locale=chat.locale if chat else None,
             price_category=PRICES_CATEGORIES[chat.price_category if chat else 0]),
-        disable_notification=not chat.push_sound,
+        disable_notification=(not chat.push_sound) if chat else False,
         parse_mode=ParseMode.MARKDOWN,
         callback=mensa_notifications.append if dt.date() == date.today() else None)
 
@@ -58,7 +58,7 @@ def send_menu_update(dt, diff, chat):
         price_category=PRICES_CATEGORIES[chat.price_category if chat else 0])
     if text.strip():
         updater.bot.sendMessage(chat_id=chat.id, text=text, parse_mode=ParseMode.MARKDOWN,
-                                disable_notification=not chat.notify_change_sound)
+                                disable_notification=(not chat.notify_change_sound) if chat else False)
 
 
 def edit_menu_message(dt, msg, menu, chat):

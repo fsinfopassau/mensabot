@@ -54,6 +54,11 @@ loggers:
   sh:
     level: INFO
 
+  sh.command:
+    level: INFO
+    handlers: [error, debug]
+    propagate: False
+
 root:
   level: DEBUG
   handlers: [error, debug, console]
