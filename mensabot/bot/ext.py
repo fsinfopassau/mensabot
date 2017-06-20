@@ -14,7 +14,7 @@ dispatcher = updater.dispatcher
 old_sm = updater.bot.sendMessage
 
 
-def __sendMessage(*args, **kwargs):
+def __sendMessage(*args, **kwargs):  # FIXME dirty implementation of callback
     from mensabot.bot.tasks import SCHED
 
     # convert args to kwargs
@@ -43,6 +43,9 @@ def __sendMessage(*args, **kwargs):
             SCHED.enter(delay, 120, updater.bot.sendMessage, kwargs=kwargs)
             return e
         else:
+            cb = kwargs.pop("callback", None)
+            if cb:
+                cb(e)
             raise
 
     except ChatMigrated as e:  # the chat_id of a group has changed, use e.new_chat_id instead
@@ -61,6 +64,9 @@ def __sendMessage(*args, **kwargs):
             execute(
                 CHATS.delete().where(CHATS.c.id == kwargs["chat_id"])
             )
+        cb = kwargs.pop("callback", None)
+        if cb:
+            cb(e)
         raise
 
 
