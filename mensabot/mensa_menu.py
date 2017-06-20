@@ -226,3 +226,55 @@ def __compare_changed_wg(changed_wg1, changed_wg2):
                 diff.append(Change("ADD", None, dish))
 
     return diff + removed
+
+
+########################################################################################################################
+
+def main():
+    import argparse
+    import csv
+    from mensabot.mensa import PRICES_CATEGORIES, MENU_TYPES
+
+    parser = argparse.ArgumentParser(description='Compare two mensa menus.')
+    parser.add_argument('path', action='store')
+    parser.add_argument('old_file', action='store')
+    parser.add_argument('old_hex', action='store')
+    parser.add_argument('old_mode', action='store')
+    parser.add_argument('new_file', action='store')
+    parser.add_argument('new_hex', action='store')
+    parser.add_argument('new_mode', action='store')
+    args = parser.parse_args()
+
+    with open(args.old_file, "r", encoding="iso8859_3") as f:
+        menu1 = [parse_dish(row) for row in csv.DictReader(f.readlines(), delimiter=';')]
+    with open(args.new_file, "r", encoding="iso8859_3") as f:
+        menu2 = [parse_dish(row) for row in csv.DictReader(f.readlines(), delimiter=';')]
+
+    diff = generate_diff(menu1, menu2)
+    diff = sorted(diff, key=lambda d: (d.dish().datum, MENU_TYPES.index(d.dish().warengruppe[0]), d.dish().warengruppe))
+    for x in diff:
+        if list(x.diff.keys()) == ["warengruppe"]:
+            continue
+
+        weekday = x.dish().datum.strftime("%a")
+        if "name" in x.diff:
+            print("[%s ~] %s ->️ %s" % ((weekday,) + x.diff["name"]))
+        elif not x.from_dish:
+            print("[%s +] %s" % (weekday, x.to_dish.name))
+        elif not x.to_dish:
+            print("[%s -] %s" % (weekday, x.from_dish.name))
+        else:
+            print("[%s ~] %s" % (weekday, x.from_dish.name))
+
+        if any(s in x.diff for s in PRICES_CATEGORIES):
+            print("\tPreis: (%s/%s/%s) ->️ (%s/%s/%s)" %
+                  (x.from_dish.stud, x.from_dish.bed, x.from_dish.gast,
+                   x.to_dish.stud, x.to_dish.bed, x.to_dish.gast))
+        if "kennz" in x.diff:
+            print("\tKennz: %s -> %s" % tuple(",".join(c.keys()) for c in x.diff["kennz"]))
+        if "zusatz" in x.diff:
+            print("\tZusatz: %s ->️ %s" % tuple(",".join(c.keys()) for c in x.diff["zusatz"]))
+
+
+if __name__ == "__main__":
+    main()

@@ -26,7 +26,8 @@ setup(
     entry_points={
         "console_scripts": [
             "mensabot = mensabot.bot.main:main",
-            "mensabot-bc = mensabot.bot.broadcast:main"
+            "mensabot-bc = mensabot.bot.broadcast:main",
+            "mensa-diff = mensabot.mensa_menu:main"
         ]
     },
     packages=find_packages(),
