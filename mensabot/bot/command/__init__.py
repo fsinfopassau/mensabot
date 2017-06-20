@@ -39,3 +39,9 @@ def abbr(bot, update):
 @ComHandlerFunc("version")
 def version(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text=get_version())
+
+
+@ComHandlerFunc("scheduler")
+def dump_schedule(bot, update):
+    from mensabot.bot.tasks import SCHED
+    bot.sendMessage(chat_id=update.message.chat_id, text="\n".join(str(job) for job in SCHED.queue))
