@@ -29,15 +29,11 @@ def dump_schedule(bot, update):
 
 @DbgComHandlerFunc("notifications")
 def dump_notifications(bot, update):
-    def msg2str(msg):
-        d = msg.to_dict()
-        d.pop("text", None)
-        d.pop("entities", None)
-        return str(d)
-
     from mensabot.bot.command.mensa import mensa_notifications
     bot.sendMessage(chat_id=update.message.chat_id,
-                    text="Today's menu messages:\n" + "\n".join(msg2str(msg) for msg in mensa_notifications))
+                    text="Today's menu messages:\n" + "\n\n".join(
+                        str({'message_id': msg.message_id, 'date': msg.date, 'chat': msg.chat})
+                        for msg in mensa_notifications))
 
 
 @DbgComHandlerFunc("settrace")
