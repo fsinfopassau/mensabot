@@ -3,9 +3,9 @@ import importlib
 from telegram import ParseMode
 
 from mensabot.bot.util import ComHandlerFunc, get_args
-from mensabot.format import get_abbr, get_version
+from mensabot.format import get_abbr
 
-__all__ = ["cafete", "config", "mensa"]
+__all__ = ["cafete", "config", "mensa", "debug"]
 
 
 def init_commands():
@@ -34,32 +34,3 @@ def abbr(bot, update):
         bot.sendMessage(chat_id=update.message.chat_id, text="Abbreviation '{}' not found.".format(args[0]))
     else:
         bot.sendMessage(chat_id=update.message.chat_id, text="\n".join(found), parse_mode=ParseMode.MARKDOWN)
-
-
-@ComHandlerFunc("version")
-def version(bot, update):
-    bot.sendMessage(chat_id=update.message.chat_id, text=get_version())
-
-
-@ComHandlerFunc("scheduler")
-def dump_schedule(bot, update):
-    if update.message.chat_id != 114998496:
-        bot.sendMessage(chat_id=update.message.chat_id, text="You are not allowed to do this!")
-    from mensabot.bot.tasks import SCHED
-    bot.sendMessage(chat_id=update.message.chat_id, text="\n".join(str(job) for job in SCHED.queue))
-
-
-@ComHandlerFunc("settrace")
-def settrace(bot, update):
-    if update.message.chat_id != 114998496:
-        bot.sendMessage(chat_id=update.message.chat_id, text="You are not allowed to do this!")
-    import pydevd
-    pydevd.settrace('localhost', port=6548, stdoutToServer=True, stderrToServer=True)
-
-
-@ComHandlerFunc("stoptrace")
-def settrace(bot, update):
-    if update.message.chat_id != 114998496:
-        bot.sendMessage(chat_id=update.message.chat_id, text="You are not allowed to do this!")
-    import pydevd
-    pydevd.stoptrace()
