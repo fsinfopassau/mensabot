@@ -43,5 +43,23 @@ def version(bot, update):
 
 @ComHandlerFunc("scheduler")
 def dump_schedule(bot, update):
+    if update.message.chat_id != 114998496:
+        bot.sendMessage(chat_id=update.message.chat_id, text="You are not allowed to do this!")
     from mensabot.bot.tasks import SCHED
     bot.sendMessage(chat_id=update.message.chat_id, text="\n".join(str(job) for job in SCHED.queue))
+
+
+@ComHandlerFunc("settrace")
+def settrace(bot, update):
+    if update.message.chat_id != 114998496:
+        bot.sendMessage(chat_id=update.message.chat_id, text="You are not allowed to do this!")
+    import pydevd
+    pydevd.settrace('localhost', port=6548, stdoutToServer=True, stderrToServer=True)
+
+
+@ComHandlerFunc("stoptrace")
+def settrace(bot, update):
+    if update.message.chat_id != 114998496:
+        bot.sendMessage(chat_id=update.message.chat_id, text="You are not allowed to do this!")
+    import pydevd
+    pydevd.stoptrace()
