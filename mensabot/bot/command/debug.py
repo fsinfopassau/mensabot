@@ -23,13 +23,15 @@ def DbgComHandlerFunc(command, **kwargs):
 @DbgComHandlerFunc("scheduler")
 def dump_schedule(bot, update):
     from mensabot.bot.tasks import SCHED
-    bot.sendMessage(chat_id=update.message.chat_id, text="\n\n".join(str(job) for job in SCHED.queue))
+    bot.sendMessage(chat_id=update.message.chat_id,
+                    text="Scheduler jobs:\n" + "\n\n".join(str(job) for job in SCHED.queue))
 
 
 @DbgComHandlerFunc("notifications")
 def dump_notifications(bot, update):
     from mensabot.bot.command.mensa import mensa_notifications
-    bot.sendMessage(chat_id=update.message.chat_id, text="\n".join(str(msg) for msg in mensa_notifications))
+    bot.sendMessage(chat_id=update.message.chat_id,
+                    text="Today's menu messages:\n" + "\n".join(str(msg) for msg in mensa_notifications))
 
 
 @DbgComHandlerFunc("settrace")
