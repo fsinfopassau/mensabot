@@ -29,6 +29,12 @@ def __sendMessage(*args, **kwargs):  # FIXME dirty implementation of callback
             cb(msg)
         return msg
 
+    except (InvalidToken, BadRequest) as e:
+        cb = kwargs.pop("callback", None)
+        if cb:
+            cb(e)
+        raise
+
     except RetryAfter as e:  # schedule retry after e.retry_after
         kwargs["__sendMessage_retries"] = retries + 1
         logger.warning("Message rate limit exceeded, retrying later.", exc_info=e)
