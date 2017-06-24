@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 
 from telegram import ParseMode
 from telegram.error import BadRequest
@@ -6,7 +6,7 @@ from telegram.error import BadRequest
 from mensabot.bot.ext import updater
 from mensabot.bot.util import ComHandlerFunc, chat_record, get_args
 from mensabot.format import get_mensa_diff_formatted, get_mensa_formatted
-from mensabot.mensa import PRICES_CATEGORIES, get_next_menu_date
+from mensabot.mensa import PRICES_CATEGORIES, get_next_menu_date, get_next_open
 from mensabot.parse import parse_loc_date
 
 mensa_notifications = []
@@ -31,7 +31,8 @@ def mensa(bot, update):
 
 def default_menu_date():
     dt = datetime.now()
-    if dt.hour > 15:
+    open_info = get_next_open(dt, "mensen/mensa-uni-passau")
+    if not open_info or open_info.offset != 0:
         dt += timedelta(days=1)
     dt = get_next_menu_date(dt)
     return dt
@@ -47,7 +48,7 @@ def send_menu_message(dt, chat, chat_id):
             price_category=PRICES_CATEGORIES[chat.price_category if chat else 0]),
         disable_notification=(not chat.push_sound) if chat else False,
         parse_mode=ParseMode.MARKDOWN,
-        callback=mensa_notifications.append if dt.date() == date.today() else None)
+        callback=mensa_notifications.append if dt.date() == default_menu_date().date() else None)
 
 
 def send_menu_update(dt, diff, chat):
