@@ -1,6 +1,8 @@
-import traceback
+import logging
+import sys
 from contextlib import contextmanager
 
+import requests
 from telegram import Message, MessageEntity, ParseMode, Update
 from telegram.ext import CommandHandler
 
@@ -30,15 +32,23 @@ def get_args(update):
     return text.strip().split(" ")
 
 
+com_logger = logging.getLogger("mensabot.bot.command")
+
+
 def ComHandlerFunc(command, **kwargs):
     def func_decorator(func):
         def func_wrapper(bot, update):
             try:
                 func(bot, update)
             except:
-                traceback.print_exc()
-                bot.sendMessage(
-                    chat_id=update.message.chat_id, text="Master, I failed! 😢", parse_mode=ParseMode.MARKDOWN)
+                com_logger.error("Command /%s failed", command, exc_info=True)
+                if sys.exc_info()[0] in [requests.exceptions.ConnectionError, requests.exceptions.Timeout]:
+                    bot.sendMessage(
+                        chat_id=update.message.chat_id, text="I got network problems, please try again later! 😢",
+                        parse_mode=ParseMode.MARKDOWN)
+                else:
+                    bot.sendMessage(
+                        chat_id=update.message.chat_id, text="Master, I failed! 😢", parse_mode=ParseMode.MARKDOWN)
                 raise
 
         handler = CommandHandler(command, func_wrapper, **kwargs)
