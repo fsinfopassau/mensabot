@@ -9,7 +9,7 @@ ECHO_SQL = False
 
 def configure_logging():
     # logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
-    os.makedirs("log",exist_ok=True)
+    os.makedirs("log", exist_ok=True)
     with open("logging.yaml", "r") as f:
         logging.config.dictConfig(yaml.load(f))
 

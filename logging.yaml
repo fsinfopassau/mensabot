@@ -7,12 +7,15 @@ filters:
 formatters:
   simple:
     format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  syslog:
+    format: 'mensabot-%(name)s: %(message)s'
 
 handlers:
   debug:
     class: logging.handlers.SysLogHandler
     level: DEBUG
     address: /dev/log
+    formatter: syslog
 
 #  debug:
 #    class: logging.handlers.RotatingFileHandler
@@ -44,12 +47,12 @@ handlers:
     stream: ext://sys.stdout
 
 loggers:
-  telegram.bot:
+  mensabot.access:
     handlers: [access]
     propagate: False
 
-  telegram.ext.dispatcher:
-    handlers: [access]
+  telegram.bot:
+    level: INFO
 
   sh:
     level: INFO
