@@ -4,7 +4,8 @@ from datetime import datetime
 import sh
 
 from mensabot import mensa
-from mensabot.bot.command.mensa import edit_menu_message, mensa_notifications, send_menu_update, default_menu_date
+from mensabot.bot.command.mensa import edit_menu_message, mensa_notifications, send_menu_update, default_menu_date, \
+    mensa_notification_date
 from mensabot.bot.tasks import SCHED
 from mensabot.bot.util import chat_record
 from mensabot.config_default import MENU_STORE
@@ -26,11 +27,10 @@ def commit_diff(week, old, new):
 
 def notify_diff(week, old, new):
     now = datetime.now()
-    today = default_menu_date().date()
     dedup = set()
 
     diff = generate_diff(old, new)
-    diff = [d for d in diff if d.dish().datum == today]
+    diff = [d for d in diff if d.dish().datum == mensa_notification_date]
     diff = sorted(diff, key=lambda d: (MENU_TYPES.index(d.dish().warengruppe[0]), d.dish().warengruppe))
 
     for msg in mensa_notifications:

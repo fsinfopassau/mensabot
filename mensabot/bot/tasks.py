@@ -6,10 +6,11 @@ from datetime import date, datetime, time, timedelta
 
 from sqlalchemy import and_
 
-from mensabot.bot.command.mensa import default_menu_date, mensa_notifications, send_menu_message
+from mensabot.bot.command import mensa
+from mensabot.bot.command.mensa import default_menu_date, send_menu_message
 from mensabot.bot.ext import updater
 from mensabot.db import CHATS, connection
-from mensabot.mensa import clear_caches, get_menu_day, get_menu_week
+from mensabot.mensa import clear_caches, get_menu_day, get_menu_week, get_next_open
 
 SCHED = sched.scheduler(systime.time, systime.sleep)
 SCHED_INTERVAL = 1
@@ -81,8 +82,17 @@ def schedule_clear_cache():
 
 
 def schedule_clear_mensa_notifications():
-    logger.debug("Resetting mensa notifications")
     now = datetime.now()
-    next = datetime.combine((now + timedelta(days=1)).date(), time(0, 30))
-    SCHED.enterabs(next.timestamp(), 1000, schedule_clear_mensa_notifications)
-    mensa_notifications.clear()
+    open_info = get_next_open(now, "mensen/mensa-uni-passau")
+    if open_info:
+        next_date = datetime.combine(open_info.day.date(), open_info.close) + timedelta(minutes=1)
+    else:
+        next_date = datetime.combine((now + timedelta(days=1)).date(), time(0, 30))
+    SCHED.enterabs(next_date.timestamp(), 1000, schedule_clear_mensa_notifications)
+
+    today = default_menu_date().date()
+    if mensa.mensa_notification_date != today:
+        logger.debug("Dropping mensa notifications from {:%Y-%m-%d}, because new mensa date is {:%Y-%m-%d}"
+                     " (next reset at {:%Y-%m-%d %H:%M})".format(mensa.mensa_notification_date, today, next_date))
+        mensa.mensa_notifications.clear()
+        mensa.mensa_notification_date = today

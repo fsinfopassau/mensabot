@@ -10,7 +10,7 @@ from mensabot.mensa import PRICES_CATEGORIES, get_next_menu_date, get_next_open
 from mensabot.parse import parse_loc_date
 
 mensa_notifications = []
-
+mensa_notification_date = datetime.today()
 
 @ComHandlerFunc("mensa")
 def mensa(bot, update):
@@ -39,7 +39,7 @@ def default_menu_date():
 
 
 def send_menu_message(dt, chat, chat_id):
-    msg = updater.bot.sendMessage(
+    return updater.bot.sendMessage(
         chat_id=chat_id,
         text=get_mensa_formatted(
             dt,
@@ -48,7 +48,7 @@ def send_menu_message(dt, chat, chat_id):
             price_category=PRICES_CATEGORIES[chat.price_category if chat else 0]),
         disable_notification=(not chat.push_sound) if chat else False,
         parse_mode=ParseMode.MARKDOWN,
-        callback=mensa_notifications.append if dt.date() == default_menu_date().date() else None)
+        callback=mensa_notifications.append if dt.date() == mensa_notification_date else None)
 
 
 def send_menu_update(dt, diff, chat):
