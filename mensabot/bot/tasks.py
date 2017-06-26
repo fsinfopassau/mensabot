@@ -10,7 +10,7 @@ from mensabot.bot.command import mensa
 from mensabot.bot.command.mensa import default_menu_date, send_menu_message
 from mensabot.bot.ext import updater
 from mensabot.db import CHATS, connection
-from mensabot.mensa import clear_caches, get_menu_day, get_menu_week, get_next_open
+from mensabot.mensa import clear_caches, get_menu_week, get_next_open
 
 SCHED = sched.scheduler(systime.time, systime.sleep)
 SCHED_INTERVAL = 1
@@ -45,11 +45,15 @@ def schedule_notification(now=None):
                           second=0, microsecond=0)
     later = now + timedelta(minutes=SCHED_INTERVAL)
 
-    if not get_menu_day(now):
-        later = (later + timedelta(days=1)).replace(hour=0, minute=0)
-        logger.debug("Not sending any notifications at {:%Y-%m-%d %H:%M} as no menu is available".format(now))
-    # else:
-    #     logger.debug("Scheduling notifications between {:%H:%M} and {:%H:%M}".format(now, later))
+    mensa_date = default_menu_date()
+    next_close = next_mensa_close_dt(mensa_date)
+    if next_close - now > timedelta(days=1):
+        later = next_close - timedelta(days=1)
+        logger.debug("Not sending any notifications at {:%H:%M} as no menu is available "
+                     "(next notifications start at {:%Y-%m-%d %H:%M} as next menu is available for {:%Y-%m-%d})"
+                     .format(now, later, mensa_date))
+    else:
+        logger.debug("Scheduling notifications between {:%H:%M} and {:%H:%M}".format(now, later))
 
     SCHED.enterabs(later.timestamp(), 10, schedule_notification, [later])
 
@@ -63,7 +67,7 @@ def schedule_notification(now=None):
             notify_time = datetime.combine(now.date(), row.push_time)
             logger.debug("Scheduling notification to {} for {:%H:%M}".format(row, notify_time))
             SCHED.enterabs(notify_time.timestamp(), 100,
-                           lambda row=row: send_menu_message(default_menu_date(), row, row.id))
+                           lambda row=row: send_menu_message(mensa_date, row, row.id))
             # `row` needs to be captured explicitly in a new scope, otherwise it would always have the last used value
             # after the loop terminated. See here: https://stackoverflow.com/a/2295372/805569
 
@@ -82,17 +86,20 @@ def schedule_clear_cache():
 
 
 def schedule_clear_mensa_notifications():
-    now = datetime.now()
-    open_info = get_next_open(now, "mensen/mensa-uni-passau")
-    if open_info:
-        next_date = datetime.combine(open_info.day.date(), open_info.close) + timedelta(minutes=1)
-    else:
-        next_date = datetime.combine((now + timedelta(days=1)).date(), time(0, 30))
-    SCHED.enterabs(next_date.timestamp(), 1000, schedule_clear_mensa_notifications)
+    next_close = next_mensa_close_dt()
+    SCHED.enterabs(next_close.timestamp(), 1000, schedule_clear_mensa_notifications)
 
     today = default_menu_date().date()
     if mensa.mensa_notification_date != today:
         logger.debug("Dropping mensa notifications from {:%Y-%m-%d}, because new mensa date is {:%Y-%m-%d}"
-                     " (next reset at {:%Y-%m-%d %H:%M})".format(mensa.mensa_notification_date, today, next_date))
+                     " (next reset at {:%Y-%m-%d %H:%M})".format(mensa.mensa_notification_date, today, next_close))
         mensa.mensa_notifications.clear()
         mensa.mensa_notification_date = today
+
+
+def next_mensa_close_dt(now=datetime.now()) -> datetime:
+    open_info = get_next_open(now, "mensen/mensa-uni-passau")
+    if open_info:
+        return datetime.combine(open_info.day.date(), open_info.close) + timedelta(minutes=1)
+    else:
+        return datetime.combine((now + timedelta(days=1)).date(), time(15, 1))

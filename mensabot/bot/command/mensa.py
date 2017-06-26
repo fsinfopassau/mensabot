@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, time, timedelta
 
 from telegram import ParseMode
 from telegram.error import BadRequest
@@ -11,6 +11,7 @@ from mensabot.parse import parse_loc_date
 
 mensa_notifications = []
 mensa_notification_date = datetime.today()
+
 
 @ComHandlerFunc("mensa")
 def mensa(bot, update):
@@ -30,7 +31,7 @@ def mensa(bot, update):
 
 
 def default_menu_date():
-    dt = datetime.now()
+    dt = datetime.combine(date.today(), time(0, 0))
     open_info = get_next_open(dt, "mensen/mensa-uni-passau")
     if not open_info or open_info.offset != 0:
         dt += timedelta(days=1)
