@@ -1,10 +1,10 @@
 import csv
+import datetime as dtm
 import functools
 import logging
 import os
 import warnings
 from collections import OrderedDict
-import datetime as dtm
 from typing import Dict, List, NamedTuple, Tuple
 
 import regex as re
@@ -75,30 +75,18 @@ def fetch_menu_week(week: int) -> List[dish]:
     return new
 
 
-def get_menu_day(dt: dtm.datetime = dtm.datetime.now()) -> List[dish]:
+def get_menu_day(dt: dtm.date = dtm.date.today()) -> List[dish]:
     """
     Get all dishes for a certain day from the stwno website, deduplicated and sorted by their type.
 
     :param dt: the date(-time)
     :return: a list of dishes
     """
-
-    menu = [d for d in get_menu_week(dt.date().isocalendar()[1]) if d.datum == dt.date()]
+    dt = ensure_date(dt)
+    menu = [d for d in get_menu_week(dt.isocalendar()[1]) if d.datum == dt]
     menu = sorted(menu, key=lambda d: (MENU_TYPES.index(d.warengruppe[0]), d.warengruppe))
     menu = reversed(OrderedDict((dish.name, dish) for dish in reversed(menu)).values())
     return list(menu)
-
-
-def get_next_menu_date(dt: dtm.datetime = dtm.datetime.now()) -> dtm.datetime:
-    """
-    Find the next date where the mensa is open and has a menu available.
-    """
-
-    for i in range(32):
-        if get_menu_day(dt):
-            return dt
-        dt += dtm.timedelta(days=1)
-    raise ValueError("Mensa not open within the next month.")
 
 
 OPENING_URL = "https://stwno.de/de/gastronomie/"
@@ -195,6 +183,23 @@ def get_next_open(dt: dtm.datetime, loc: str) -> open_info:
     return None  # not open in the foreseeable future
 
 
+def get_next_mensa_open(dt: dtm.datetime = dtm.datetime.now(), loc: str = "mensen/mensa-uni-passau") \
+        -> (open_info, List[dish]):
+    menu = None
+    offset = 0
+    while menu is None:
+        next_open = get_next_open(dt, loc)
+        if not next_open:
+            return None
+        offset += next_open.offset
+        if offset > 31:
+            return None
+        open, close, day, _ = next_open
+        menu = get_menu_day(day)
+        dt = day + dtm.timedelta(days=1)
+    return open_info(open, close, day, offset), menu
+
+
 DATES_URL = "http://www.uni-passau.de/studium/waehrend-des-studiums/semesterterminplan/"
 DATES_HOLIDAY = {"Vorlesungsbeginn": True, "Vorlesungsende": False}
 
@@ -210,7 +215,7 @@ def is_holiday(dt: dtm.datetime = dtm.datetime.now()) -> bool:
 
 
 @functools.lru_cache(maxsize=1)
-def get_semester_dates() -> List[Tuple[str, date]]:
+def get_semester_dates() -> List[Tuple[str, dtm.date]]:
     """
     Get a list of the dates of start and end of lecture as a list of Tuples with either
     "Vorlesungsbeginn" or "Vorlesungsende" and the respective date.

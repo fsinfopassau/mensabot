@@ -6,11 +6,11 @@ from telegram.error import BadRequest
 from mensabot.bot.ext import updater
 from mensabot.bot.util import ComHandlerFunc, chat_record, get_args
 from mensabot.format import get_mensa_diff_formatted, get_mensa_formatted
-from mensabot.mensa import PRICES_CATEGORIES, get_next_menu_date, get_next_open
+from mensabot.mensa import PRICES_CATEGORIES, get_next_mensa_open
 from mensabot.parse import parse_loc_date
 
 mensa_notifications = []
-mensa_notification_date = dtm.datetime.today()
+mensa_notification_date = dtm.date.today()
 
 
 @ComHandlerFunc("mensa")
@@ -18,7 +18,7 @@ def mensa(bot, update):
     try:
         loc, dt = parse_loc_date(get_args(update))
         if not dt:
-            dt = default_menu_date()
+            (open, close, dt, offset), menu = get_next_mensa_open()
         if loc:
             raise ValueError("Currently, only default location is supported")
     except ValueError as e:
@@ -28,15 +28,6 @@ def mensa(bot, update):
 
     with chat_record(update) as chat:
         send_menu_message(dt, chat, update.message.chat_id)
-
-
-def default_menu_date():
-    dt = dtm.datetime.combine(dtm.date.today(), dtm.time(0, 0))
-    open_info = get_next_open(dt, "mensen/mensa-uni-passau")
-    if not open_info or open_info.offset != 0:
-        dt += dtm.timedelta(days=1)
-    dt = get_next_menu_date(dt)
-    return dt
 
 
 def send_menu_message(dt, chat, chat_id):

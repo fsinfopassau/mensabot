@@ -7,10 +7,10 @@ import time as systime
 from sqlalchemy import and_
 
 from mensabot.bot.command import mensa
-from mensabot.bot.command.mensa import default_menu_date, send_menu_message
+from mensabot.bot.command.mensa import send_menu_message
 from mensabot.bot.ext import updater
 from mensabot.db import CHATS, connection
-from mensabot.mensa import clear_caches, get_menu_week, get_next_open
+from mensabot.mensa import clear_caches, get_menu_week, get_next_mensa_open
 
 SCHED = sched.scheduler(systime.time, systime.sleep)
 SCHED_INTERVAL = 1
@@ -45,13 +45,13 @@ def schedule_notification(now=None):
                           second=0, microsecond=0)
     later = now + dtm.timedelta(minutes=SCHED_INTERVAL)
 
-    mensa_date = default_menu_date()
-    next_close = next_mensa_close_dt(mensa_date)
+    (open, close, day, offset), menu = get_next_mensa_open(now)
+    next_close = dtm.datetime.combine(day.date(), close)
     if next_close - now > dtm.timedelta(days=1):
         later = next_close - dtm.timedelta(days=1)
         logger.debug("Not sending any notifications at {:%H:%M} as no menu is available "
                      "(next notifications start at {:%Y-%m-%d %H:%M} as next menu is available for {:%Y-%m-%d})"
-                     .format(now, later, mensa_date))
+                     .format(now, later, day))
     else:
         logger.debug("Scheduling notifications between {:%H:%M} and {:%H:%M}".format(now, later))
 
@@ -67,7 +67,7 @@ def schedule_notification(now=None):
             notify_time = dtm.datetime.combine(now.date(), row.push_time)
             logger.debug("Scheduling notification to {} for {:%H:%M}".format(row, notify_time))
             SCHED.enterabs(notify_time.timestamp(), 100,
-                           lambda row=row: send_menu_message(mensa_date, row, row.id))
+                           lambda row=row: send_menu_message(day, row, row.id))
             # `row` needs to be captured explicitly in a new scope, otherwise it would always have the last used value
             # after the loop terminated. See here: https://stackoverflow.com/a/2295372/805569
 
@@ -86,20 +86,13 @@ def schedule_clear_cache():
 
 
 def schedule_clear_mensa_notifications():
-    next_close = next_mensa_close_dt()
-    SCHED.enterabs(next_close.timestamp(), 1000, schedule_clear_mensa_notifications)
+    (open, close, day, offset), menu = get_next_mensa_open()
+    next_close = dtm.datetime.combine(day.date(), close)
+    SCHED.enterabs((next_close + dtm.timedelta(minutes=1)).timestamp(), 1000, schedule_clear_mensa_notifications)
 
-    today = default_menu_date().date()
-    if mensa.mensa_notification_date != today:
+    if mensa.mensa_notification_date != day.date():
         logger.debug("Dropping mensa notifications from {:%Y-%m-%d}, because new mensa date is {:%Y-%m-%d}"
-                     " (next reset at {:%Y-%m-%d %H:%M})".format(mensa.mensa_notification_date, today, next_close))
+                     " (next reset on that day at {:%H:%M})"
+                     .format(mensa.mensa_notification_date, day.date(), next_close))
         mensa.mensa_notifications.clear()
-        mensa.mensa_notification_date = today
-
-
-def next_mensa_close_dt(now=dtm.datetime.now()) -> dtm.datetime:
-    open_info = get_next_open(now, "mensen/mensa-uni-passau")
-    if open_info:
-        return dtm.datetime.combine(open_info.day.date(), open_info.close) + dtm.timedelta(minutes=1)
-    else:
-        return dtm.datetime.combine((now + dtm.timedelta(days=1)).date(), dtm.time(15, 1))
+        mensa.mensa_notification_date = day.date()
