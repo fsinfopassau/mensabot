@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+import datetime as dtm
 
 import sh
 
@@ -21,12 +21,12 @@ def commit_diff(week, old, new):
         git.remote.add("origin", "git@github.com:N-Coder/mensabot-crawler.git")
 
     git.add("%s.csv" % week)
-    git.commit(m="updates from %s" % datetime.now())
+    git.commit(m="updates from %s" % dtm.datetime.now())
     # git.push()
 
 
 def notify_diff(week, old, new):
-    now = datetime.now()
+    now = dtm.datetime.now()
     dedup = set()
 
     diff = generate_diff(old, new)

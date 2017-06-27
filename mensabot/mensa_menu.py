@@ -3,7 +3,7 @@ import itertools
 import re
 import warnings
 from collections import Counter
-from datetime import datetime
+import datetime as dtm
 from typing import List, NamedTuple, Optional
 
 import regex as re
@@ -13,7 +13,7 @@ PATTERN_ZUSATZ = PATTERN_TAG + "(" + PATTERN_TAG + "[,/]\s*)*"
 PATTERN_KENNZ = "\s*[,*]\s*(" + PATTERN_TAG + "(" + PATTERN_TAG + "[,/]\s*)*)$"
 
 dish = NamedTuple("dish", [
-    ("datum", datetime),
+    ("datum", dtm.datetime),
     ("name", str),
     ("warengruppe", str),
     ("kennz", Counter),
@@ -29,7 +29,7 @@ def parse_dish(row: dict) -> dish:
     Parse a row from the csv file as dish, trying to extract further information from the name.
     """
 
-    row['datum'] = datetime.strptime(row['datum'], "%d.%m.%Y").date()
+    row['datum'] = dtm.datetime.strptime(row['datum'], "%d.%m.%Y").date()
     row['zusatz'] = Counter()
     row['kennz'] = Counter(row['kennz'].split(",") if row['kennz'] else [])
     row["stud"] = float(row["stud"].replace(",", "."))

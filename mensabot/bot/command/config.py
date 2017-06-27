@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime as dtm
 
 from mensabot.bot.util import ComHandlerFunc, get_args
 from mensabot.db import CHATS, connection
@@ -29,10 +29,10 @@ def check_notification_time(x):
     if x is None:
         return None
     try:
-        return datetime.strptime(x, "%H:%M:%S").time()
+        return dtm.datetime.strptime(x, "%H:%M:%S").time()
     except ValueError:
         try:
-            return datetime.strptime(x, "%H:%M").time()
+            return dtm.datetime.strptime(x, "%H:%M").time()
         except ValueError as e:
             raise ValueError("Could not parse time '%s', try e.g. '11:15'. (reason was %s)" % (x, e))
 

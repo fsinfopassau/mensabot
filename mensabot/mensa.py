@@ -4,13 +4,14 @@ import logging
 import os
 import warnings
 from collections import OrderedDict
-from datetime import date, datetime, time, timedelta
+import datetime as dtm
 from typing import Dict, List, NamedTuple, Tuple
 
 import regex as re
 import requests
 from bs4 import BeautifulSoup
 
+from mensabot.bot.util import ensure_date
 from mensabot.config_default import MENU_STORE
 from mensabot.mensa_menu import dish, parse_dish
 
@@ -42,10 +43,10 @@ def get_menu_week(week: int, disable_cache=False) -> List[dish]:
 
     if week in cache and not disable_cache:
         dt, list = cache[week]
-        if datetime.now() - dt < timedelta(minutes=5):
+        if dtm.datetime.now() - dt < dtm.timedelta(minutes=5):
             return list
     list = fetch_menu_week(week)
-    cache[week] = (datetime.now(), list)
+    cache[week] = (dtm.datetime.now(), list)
     return list
 
 
@@ -74,7 +75,7 @@ def fetch_menu_week(week: int) -> List[dish]:
     return new
 
 
-def get_menu_day(dt: datetime = datetime.now()) -> List[dish]:
+def get_menu_day(dt: dtm.datetime = dtm.datetime.now()) -> List[dish]:
     """
     Get all dishes for a certain day from the stwno website, deduplicated and sorted by their type.
 
@@ -88,7 +89,7 @@ def get_menu_day(dt: datetime = datetime.now()) -> List[dish]:
     return list(menu)
 
 
-def get_next_menu_date(dt: datetime = datetime.now()) -> datetime:
+def get_next_menu_date(dt: dtm.datetime = dtm.datetime.now()) -> dtm.datetime:
     """
     Find the next date where the mensa is open and has a menu available.
     """
@@ -96,18 +97,18 @@ def get_next_menu_date(dt: datetime = datetime.now()) -> datetime:
     for i in range(32):
         if get_menu_day(dt):
             return dt
-        dt += timedelta(days=1)
+        dt += dtm.timedelta(days=1)
     raise ValueError("Mensa not open within the next month.")
 
 
 OPENING_URL = "https://stwno.de/de/gastronomie/"
 OPENING_DAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
 OPENING_TIMEFRAME_HOLIDAY = {"vorlesungszeit": False, "vorlesungsfreie zeit": True}
-NOT_OPEN = (time(0, 0),) * 2
+NOT_OPEN = (dtm.time(0, 0),) * 2
 
 
 @functools.lru_cache(maxsize=16)
-def get_opening_times(loc: str) -> Dict[Tuple[bool, int], Tuple[time, time]]:
+def get_opening_times(loc: str) -> Dict[Tuple[bool, int], Tuple[dtm.time, dtm.time]]:
     """
     Return the opening times for a certain location.
 
@@ -157,8 +158,8 @@ def get_opening_times(loc: str) -> Dict[Tuple[bool, int], Tuple[time, time]]:
         else:
             warnings.warn("Could not parse time range '{}'".format(time_str))
             continue
-        open = time(open_h, open_min)
-        close = time(close_h, close_min)
+        open = dtm.time(open_h, open_min)
+        close = dtm.time(close_h, close_min)
 
         for day in days:
             dates[(holidays, day)] = (open, close)
@@ -166,10 +167,10 @@ def get_opening_times(loc: str) -> Dict[Tuple[bool, int], Tuple[time, time]]:
     return dates
 
 
-open_info = NamedTuple("open_info", [("open", time), ("close", time), ("day", datetime), ("offset", int)])
+open_info = NamedTuple("open_info", [("open", dtm.time), ("close", dtm.time), ("day", dtm.datetime), ("offset", int)])
 
 
-def get_next_open(dt: datetime, loc: str) -> open_info:
+def get_next_open(dt: dtm.datetime, loc: str) -> open_info:
     """
     Check when the given location is open the next time.
 
@@ -178,7 +179,7 @@ def get_next_open(dt: datetime, loc: str) -> open_info:
     """
 
     times = get_opening_times(loc)
-    days = [(i, dt + timedelta(days=i)) for i in range(6)]
+    days = [(i, dt + dtm.timedelta(days=i)) for i in range(6)]
     for open, close, offset, day in (times[(is_holiday(d), d.isoweekday() - 1)] + (i, d) for i, d in days):
         # print("{} {:%a %Y-%m-%d} {:%H:%M} {:%H:%M}".format(offset, day, open, close))
         if offset == 0:
@@ -186,7 +187,7 @@ def get_next_open(dt: datetime, loc: str) -> open_info:
                 return open_info(open, close, day, offset)  # still open today
             else:
                 pass  # closed for today, search for the next open date
-        elif open > time(0, 0):
+        elif open > dtm.time(0, 0):
             return open_info(open, close, day, offset)  # found next open day
         else:
             pass  # continue searching for the next open date
@@ -198,7 +199,7 @@ DATES_URL = "http://www.uni-passau.de/studium/waehrend-des-studiums/semesterterm
 DATES_HOLIDAY = {"Vorlesungsbeginn": True, "Vorlesungsende": False}
 
 
-def is_holiday(dt: datetime = datetime.now()) -> bool:
+def is_holiday(dt: dtm.datetime = dtm.datetime.now()) -> bool:
     """
     Check whether a certain date is during the holidays, the so called "vorlesungsfreie Zeit".
     """
@@ -218,7 +219,7 @@ def get_semester_dates() -> List[Tuple[str, date]]:
     r = requests.get(DATES_URL)
     r.raise_for_status()
     soup = BeautifulSoup(r.text, 'html.parser')
-    dates = [(elem.text, datetime.strptime(elem.find_previous_sibling("td").text, "%d.%m.%Y").date()) for elem in
+    dates = [(elem.text, dtm.datetime.strptime(elem.find_previous_sibling("td").text, "%d.%m.%Y").date()) for elem in
              soup.find_all("td", text=re.compile("^Vorlesungs(beginn|ende)"))]
     dates.sort(key=lambda e: e[1])
     return dates

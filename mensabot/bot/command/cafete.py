@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime as dtm
 
 from telegram import ParseMode
 
@@ -13,7 +13,7 @@ def cafete(bot, update):
     try:
         loc, dt = parse_loc_date(get_args(update))
         if not dt:
-            dt = datetime.now()
+            dt = dtm.datetime.now()
         if not loc:
             loc = "mensacafete"
     except ValueError as e:

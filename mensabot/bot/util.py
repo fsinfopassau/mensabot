@@ -1,3 +1,4 @@
+import datetime as dtm
 import logging
 import sys
 from contextlib import contextmanager
@@ -22,6 +23,15 @@ def chat_record(id):
         res = execute(CHATS.select(CHATS.c.id == id))
         row = res.fetchone()
         yield row
+
+
+def ensure_date(dt):
+    if isinstance(dt, dtm.datetime):
+        return dt.date()
+    elif isinstance(dt, dtm.date):
+        return dt
+    else:
+        raise ValueError("'%s' can't be converted to a date" % dt)
 
 
 def get_args(update):

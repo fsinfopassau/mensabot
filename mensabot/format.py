@@ -1,7 +1,7 @@
+import datetime as dtm
 import inspect
 import os
 import subprocess
-from datetime import datetime, time, timedelta
 from typing import List, NamedTuple
 
 import pkg_resources
@@ -82,7 +82,7 @@ def get_mensa_formatted(dt, template=None, locale=None, price_category="stud"):
     locale = locale or LANG[0]
     template = template or locale
     return JINJA2_ENV.get_template("{}/menu.md".format(template)).render(
-        {"menu": get_menu_day(dt), "date": dt, "now": datetime.now(), "locale": locale,
+        {"menu": get_menu_day(dt), "date": dt, "now": dtm.datetime.now(), "locale": locale,
          "price_category": price_category})
 
 
@@ -90,11 +90,11 @@ def get_mensa_diff_formatted(dt, diff, template=None, locale=None, price_categor
     locale = locale or LANG[0]
     template = template or locale
     return JINJA2_ENV.get_template("{}/diff.md".format(template)).render(
-        {"diff": diff, "date": dt, "now": datetime.now(), "locale": locale,
+        {"diff": diff, "date": dt, "now": dtm.datetime.now(), "locale": locale,
          "price_category": price_category})
 
 
-schedule = NamedTuple("schedule", [("open", time), ("close", time), ("day", datetime)])
+schedule = NamedTuple("schedule", [("open", dtm.time), ("close", dtm.time), ("day", dtm.datetime)])
 
 
 def get_open_formatted(loc, dt, template=None, locale=None):
@@ -106,11 +106,11 @@ def get_open_formatted(loc, dt, template=None, locale=None):
 
     # schedule for the current week
     sched = [schedule(*get_opening_times(LOCATIONS[loc])[(is_holiday(day), day.isoweekday() - 1)], day=day)
-             for day in [dt + timedelta(days=i - dt.weekday()) for i in range(7)]]
+             for day in [dt + dtm.timedelta(days=i - dt.weekday()) for i in range(7)]]
 
     return JINJA2_ENV.get_template("{}/open.md".format(template)).render(
         {"open_info": open_info, "schedule": sched, "date": dt, "loc": loc, "NOT_OPEN": NOT_OPEN,
-         "now": datetime.now(), "locale": locale})
+         "now": dtm.datetime.now(), "locale": locale})
 
 
 def get_abbr():
