@@ -1,11 +1,10 @@
-import os
 import datetime as dtm
+import os
 
 import sh
 
 from mensabot import mensa
-from mensabot.bot.command.mensa import edit_menu_message, mensa_notifications, send_menu_update, default_menu_date, \
-    mensa_notification_date
+from mensabot.bot.command.mensa import edit_menu_message, mensa_notification_date, mensa_notifications, send_menu_update
 from mensabot.bot.tasks import SCHED
 from mensabot.bot.util import chat_record
 from mensabot.config_default import MENU_STORE
