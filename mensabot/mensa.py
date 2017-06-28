@@ -75,14 +75,14 @@ def fetch_menu_week(week: int) -> List[dish]:
     return new
 
 
-def get_menu_day(dt: dtm.date = dtm.date.today()) -> List[dish]:
+def get_menu_day(dt: dtm.date = None) -> List[dish]:
     """
     Get all dishes for a certain day from the stwno website, deduplicated and sorted by their type.
 
     :param dt: the date(-time)
     :return: a list of dishes
     """
-    dt = ensure_date(dt)
+    dt = ensure_date(dt or dtm.date.today())
     menu = [d for d in get_menu_week(dt.isocalendar()[1]) if d.datum == dt]
     menu = sorted(menu, key=lambda d: (MENU_TYPES.index(d.warengruppe[0]), d.warengruppe))
     menu = reversed(OrderedDict((dish.name, dish) for dish in reversed(menu)).values())
@@ -183,8 +183,9 @@ def get_next_open(dt: dtm.datetime, loc: str) -> open_info:
     return None  # not open in the foreseeable future
 
 
-def get_next_mensa_open(dt: dtm.datetime = dtm.datetime.now(), loc: str = "mensen/mensa-uni-passau") \
+def get_next_mensa_open(dt: dtm.datetime = None, loc: str = "mensen/mensa-uni-passau") \
         -> (open_info, List[dish]):
+    dt = dt or dtm.datetime.now()
     menu = None
     offset = 0
     while menu is None:
@@ -204,11 +205,12 @@ DATES_URL = "http://www.uni-passau.de/studium/waehrend-des-studiums/semesterterm
 DATES_HOLIDAY = {"Vorlesungsbeginn": True, "Vorlesungsende": False}
 
 
-def is_holiday(dt: dtm.datetime = dtm.datetime.now()) -> bool:
+def is_holiday(dt: dtm.datetime = None) -> bool:
     """
     Check whether a certain date is during the holidays, the so called "vorlesungsfreie Zeit".
     """
 
+    dt = dt or dtm.datetime.now()
     next_date = next((t, d) for t, d in get_semester_dates() if d >= dt.date())
     is_holiday = DATES_HOLIDAY[next_date[0]]
     return is_holiday

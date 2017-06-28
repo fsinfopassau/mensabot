@@ -96,3 +96,7 @@ def schedule_clear_mensa_notifications():
                      .format(mensa.mensa_notification_date, day.date(), next_close))
         mensa.mensa_notifications.clear()
         mensa.mensa_notification_date = day.date()
+    else:
+        logger.debug("Not dropping mensa notifications from {:%Y-%m-%d}, because it is still the next mensa date "
+                     " (next reset on that day at {:%H:%M})"
+                     .format(mensa.mensa_notification_date, next_close))
