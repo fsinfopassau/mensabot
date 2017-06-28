@@ -25,7 +25,6 @@ def commit_diff(week, old, new):
 
 
 def notify_diff(week, old, new):
-    now = dtm.datetime.now()
     dedup = set()
 
     diff = generate_diff(old, new)
@@ -36,9 +35,9 @@ def notify_diff(week, old, new):
         with chat_record(msg) as chat:
             if chat.notify_change and chat.id not in dedup:
                 dedup.add(chat.id)
-                send_menu_update(now, diff, chat)
+                send_menu_update(mensa_notification_date, diff, chat)
             if chat.update_menu:
-                edit_menu_message(now, msg, new, chat)
+                edit_menu_message(mensa_notification_date, msg, new, chat)
 
 
 def install_listener():

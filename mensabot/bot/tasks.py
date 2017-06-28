@@ -67,7 +67,7 @@ def schedule_notification(now=None):
             notify_time = dtm.datetime.combine(now.date(), row.push_time)
             logger.debug("Scheduling notification to {} for {:%H:%M}".format(row, notify_time))
             SCHED.enterabs(notify_time.timestamp(), 100,
-                           lambda row=row: send_menu_message(day, row, row.id))
+                           lambda row=row: send_menu_message(notify_time, row, row.id))
             # `row` needs to be captured explicitly in a new scope, otherwise it would always have the last used value
             # after the loop terminated. See here: https://stackoverflow.com/a/2295372/805569
 

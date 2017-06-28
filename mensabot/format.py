@@ -9,6 +9,7 @@ from babel.dates import format_date, format_time
 from jinja2 import PackageLoader, TemplateNotFound
 from jinja2.sandbox import SandboxedEnvironment
 
+from mensabot.bot.util import ensure_date
 from mensabot.config_default import DEPLOY_MODE
 from mensabot.mensa import LOCATIONS, NOT_OPEN, dish, get_menu_day, get_next_open, get_opening_times, is_holiday
 from mensabot.parse import LANG
@@ -21,6 +22,7 @@ JINJA2_ENV = SandboxedEnvironment(
 )
 JINJA2_ENV.filters["format_date"] = format_date
 JINJA2_ENV.filters["format_time"] = format_time
+JINJA2_ENV.filters["ensure_date"] = ensure_date
 
 
 def jinja2_filter(filter_name):

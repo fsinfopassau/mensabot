@@ -1,7 +1,7 @@
 {% extends "utils.md" %}
 
 {% macro date(dt, now, locale) -%}
-{% set delta = (dt.date() - now.date()).days %}
+{% set delta = (dt|ensure_date - now|ensure_date).days %}
 {% set relative_days = false %}
 {% if delta == 0 %}
 heute, {% elif delta == -1 %}
