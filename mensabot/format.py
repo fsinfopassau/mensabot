@@ -80,19 +80,21 @@ def filter_ketchup(list: List[dish]):
     return (v for v in list if any(s in v.name.lower() for s in KETCHUP))
 
 
-def get_mensa_formatted(dt, template=None, locale=None, price_category="stud"):
+def get_mensa_formatted(dt, template=None, locale=None, price_category="stud", now=None):
     locale = locale or LANG[0]
     template = template or locale
+    now = now or dtm.datetime.now()
     return JINJA2_ENV.get_template("{}/menu.md".format(template)).render(
-        {"menu": get_menu_day(dt), "date": dt, "now": dtm.datetime.now(), "locale": locale,
+        {"menu": get_menu_day(dt), "date": dt, "now": now, "locale": locale,
          "price_category": price_category})
 
 
-def get_mensa_diff_formatted(dt, diff, template=None, locale=None, price_category="stud"):
+def get_mensa_diff_formatted(dt, diff, template=None, locale=None, price_category="stud", now=None):
     locale = locale or LANG[0]
     template = template or locale
+    now = now or dtm.datetime.now()
     return JINJA2_ENV.get_template("{}/diff.md".format(template)).render(
-        {"diff": diff, "date": dt, "now": dtm.datetime.now(), "locale": locale,
+        {"diff": diff, "date": dt, "now": now, "locale": locale,
          "price_category": price_category})
 
 
@@ -125,6 +127,7 @@ def check_legal_template(dir):
     try:
         JINJA2_ENV.get_template("{}/menu.md".format(dir))
         JINJA2_ENV.get_template("{}/open.md".format(dir))
+        JINJA2_ENV.get_template("{}/diff.md".format(dir))
         return dir
     except TemplateNotFound:
         raise ValueError("Unknown template '%s'. Try 'de' or 'en'." % dir)

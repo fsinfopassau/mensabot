@@ -59,7 +59,8 @@ def edit_menu_message(dt, msg, menu, chat):
         dt,
         template=chat.template if chat else None,
         locale=chat.locale if chat else None,
-        price_category=PRICES_CATEGORIES[chat.price_category if chat else 0])
+        price_category=PRICES_CATEGORIES[chat.price_category if chat else 0],
+        now=msg.date)
     if text != msg.text:
         try:
             updater.bot.editMessageText(
