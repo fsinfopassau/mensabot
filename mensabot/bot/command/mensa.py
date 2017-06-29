@@ -4,13 +4,13 @@ from telegram import ParseMode
 from telegram.error import BadRequest
 
 from mensabot.bot.ext import updater
-from mensabot.bot.util import ComHandlerFunc, chat_record, get_args
+from mensabot.bot.util import ComHandlerFunc, chat_record, get_args, ensure_date
 from mensabot.format import get_mensa_diff_formatted, get_mensa_formatted
 from mensabot.mensa import PRICES_CATEGORIES, get_next_mensa_open
 from mensabot.parse import parse_loc_date
 
-mensa_notifications = []
-mensa_notification_date = dtm.date.today()
+notifications = []
+notifications_date = dtm.date.today()
 
 
 @ComHandlerFunc("mensa")
@@ -40,7 +40,7 @@ def send_menu_message(dt, chat, chat_id):
             price_category=PRICES_CATEGORIES[chat.price_category if chat else 0]),
         disable_notification=(not chat.push_sound) if chat else False,
         parse_mode=ParseMode.MARKDOWN,
-        callback=mensa_notifications.append if dt.date() == mensa_notification_date else None)
+        callback=notifications.append if ensure_date(dt) == notifications_date else None)
 
 
 def send_menu_update(dt, diff, chat):

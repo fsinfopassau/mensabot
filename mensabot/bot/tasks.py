@@ -92,13 +92,13 @@ def schedule_clear_mensa_notifications():
     next_close = dtm.datetime.combine(day.date(), close)
     SCHED.enterabs((next_close + dtm.timedelta(minutes=1)).timestamp(), 1000, schedule_clear_mensa_notifications)
 
-    if mensa.mensa_notification_date != day.date():
+    if mensa.notifications_date != day.date():
         logger.debug("Dropping mensa notifications from {:%Y-%m-%d}, because new mensa date is {:%Y-%m-%d}"
                      " (next reset on that day at {:%H:%M})"
-                     .format(mensa.mensa_notification_date, day.date(), next_close))
-        mensa.mensa_notifications.clear()
-        mensa.mensa_notification_date = day.date()
+                     .format(mensa.notifications_date, day.date(), next_close))
+        mensa.notifications.clear()
+        mensa.notifications_date = day.date()
     else:
         logger.debug("Not dropping mensa notifications from {:%Y-%m-%d}, because it is still the next mensa date "
                      " (next reset on that day at {:%H:%M})"
-                     .format(mensa.mensa_notification_date, next_close))
+                     .format(mensa.notifications_date, next_close))

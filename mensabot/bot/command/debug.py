@@ -32,10 +32,10 @@ def dump_notifications(bot, update):
     from mensabot.bot.command import mensa
     bot.sendMessage(chat_id=update.message.chat_id,
                     text="Menu messages for {:%Y-%m-%d}:\n{}".format(
-                        mensa.mensa_notification_date,
+                        mensa.notifications_date,
                         "\n\n".join(
                             str({'message_id': msg.message_id, 'date': msg.date, 'chat': msg.chat.to_dict()})
-                            for msg in mensa.mensa_notifications)
+                            for msg in mensa.notifications)
                     ))
 
 

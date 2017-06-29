@@ -29,16 +29,16 @@ def notify_diff(week, old, new):
     dedup = set()
 
     diff = generate_diff(old, new)
-    diff = [d for d in diff if d.dish().datum == mensa_cmd.mensa_notification_date]
+    diff = [d for d in diff if d.dish().datum == mensa_cmd.notifications_date]
     diff = sorted(diff, key=lambda d: (MENU_TYPES.index(d.dish().warengruppe[0]), d.dish().warengruppe))
 
-    for msg in mensa_cmd.mensa_notifications:
+    for msg in mensa_cmd.notifications:
         with chat_record(msg) as chat:
             if chat.notify_change and chat.id not in dedup:
                 dedup.add(chat.id)
-                send_menu_update(mensa_cmd.mensa_notification_date, diff, chat)
+                send_menu_update(mensa_cmd.notifications_date, diff, chat)
             if chat.update_menu:
-                edit_menu_message(mensa_cmd.mensa_notification_date, msg, new, chat)
+                edit_menu_message(mensa_cmd.notifications_date, msg, new, chat)
 
 
 def install_listener():
