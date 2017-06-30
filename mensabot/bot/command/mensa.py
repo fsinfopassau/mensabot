@@ -64,7 +64,7 @@ def edit_menu_message(dt, msg, menu, chat):
     if text != msg.text:
         try:
             updater.bot.editMessageText(
-                message_id=msg.message_id, chat_id=chat.id,
+                message_id=msg.message_id, chat_id=msg.chat_id,
                 text=text, parse_mode=ParseMode.MARKDOWN)
         except BadRequest as e:
             if e.message == "Message is not modified":

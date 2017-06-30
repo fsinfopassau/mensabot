@@ -34,6 +34,8 @@ def notify_diff(week, old, new):
 
     for msg in mensa_cmd.notifications:
         with chat_record(msg) as chat:
+            if not chat:
+                continue
             if chat.notify_change and chat.id not in dedup:
                 dedup.add(chat.id)
                 send_menu_update(mensa_cmd.notifications_date, diff, chat)
