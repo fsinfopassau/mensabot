@@ -55,19 +55,22 @@ def fetch_menu_week(week: int) -> List[dish]:
     if not r.ok:
         r = requests.get("%s%02s.csv" % (MENU_URL, week))
     r.raise_for_status()
+    text = r.text
+    # fix ; appearing in Zusatz, e.g. (2,3,8,G,I,A;AA)
+    text = re.sub("\([A-Z0-9,; ]+\)", lambda m: m.group().replace(";", ","), text)
 
     os.makedirs(MENU_STORE, exist_ok=True)
     with open("%s/%s.csv" % (MENU_STORE, week), "a+", encoding="iso8859_3") as f:
         f.seek(0)
         old = [parse_dish(row) for row in csv.DictReader(f.readlines(), delimiter=';')]
-        new = [parse_dish(row) for row in csv.DictReader(r.text.splitlines(), delimiter=';')]
+        new = [parse_dish(row) for row in csv.DictReader(text.splitlines(), delimiter=';')]
 
         if old == new:
             return old
 
         f.seek(0)
         f.truncate(0)
-        f.writelines(r.text)
+        f.writelines(text)
 
     logger.debug("Menu changed!")
     for l in change_listeners:
