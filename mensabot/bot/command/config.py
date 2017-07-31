@@ -1,6 +1,6 @@
 import datetime as dtm
 
-from mensabot.bot.util import ComHandlerFunc, get_args
+from mensabot.bot.util import ComHandlerFunc, get_args, chat_record
 from mensabot.db import CHATS, connection
 from mensabot.format import check_legal_template
 from mensabot.mensa import PRICES_CATEGORIES
@@ -75,8 +75,9 @@ def set_config(bot, update):
 
     try:
         if arg.lower() in CONFIG_RESET:
-            arg = None
-        arg = CONFIG_OPTIONS[fun](arg)
+            arg = CHATS.columns.get(fun).server_default.arg
+        else:
+            arg = CONFIG_OPTIONS[fun](arg)
     except KeyError:
         bot.sendMessage(chat_id=update.message.chat_id, text="'{}' is not a valid config option. Try {}.".format(
             fun, ", ".join(CONFIG_OPTIONS.keys())
@@ -107,18 +108,7 @@ def get_config(bot, update):
                         text="Could not parse args '%s'. Enter the name of a config option." % " ".join(args))
         return
 
-    with connection() as (conn, execute):
-        res = execute(
-            CHATS.select().where(CHATS.c.id == id)
-        ).fetchone()
-        if not res:
-            execute(
-                CHATS.insert().values(id=id)
-            )
-            res = execute(
-                CHATS.select().where(CHATS.c.id == id)
-            ).fetchone()
-
+    with chat_record(id) as res:
         if len(args) == 1 and args[0]:
             fun, = args
             if fun not in CONFIG_OPTIONS.keys():

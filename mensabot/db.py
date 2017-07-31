@@ -19,7 +19,7 @@ CHATS = Table(
     Column('push_sound', Boolean, server_default=text("1")),
     Column('notify_change', Boolean, server_default=text("0")),
     Column('notify_change_sound', Boolean, server_default=text("0")),
-    Column('update_menu', Boolean, server_default=text("0")),
+    Column('update_menu', Boolean, server_default=text("1")),
 )
 
 SQL_ENGINE = create_engine('sqlite:///mensabot.sqlite', echo=ECHO_SQL)

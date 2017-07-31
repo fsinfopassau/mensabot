@@ -20,9 +20,17 @@ def chat_record(id):
     elif not isinstance(id, int):
         raise ValueError("ID '%s' is not an int." % id)
     with connection() as (conn, execute):
-        res = execute(CHATS.select(CHATS.c.id == id))
-        row = res.fetchone()
-        yield row
+        res = execute(
+            CHATS.select().where(CHATS.c.id == id)
+        ).fetchone()
+        if not res:
+            execute(
+                CHATS.insert().values(id=id)
+            )
+            res = execute(
+                CHATS.select().where(CHATS.c.id == id)
+            ).fetchone()
+        yield res
 
 
 def ensure_date(dt):
