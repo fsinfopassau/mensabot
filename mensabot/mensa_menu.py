@@ -1,9 +1,9 @@
+import datetime as dtm
 import difflib
 import itertools
 import re
 import warnings
 from collections import Counter
-import datetime as dtm
 from typing import List, NamedTuple, Optional
 
 import regex as re
@@ -45,7 +45,9 @@ def parse_dish(row: dict) -> dish:
         names, zusatz, kennz = __parse_name(row["name"])
         row["name"] = " ".join(names)
         row['zusatz'] += Counter(zusatz)
+        del row['zusatz']['']
         row['kennz'] += Counter(kennz)
+        del row['kennz']['']
 
     return dish(**row)
 
@@ -213,7 +215,7 @@ def __compare_changed_wg(changed_wg1, changed_wg2):
         try:
             if dish == names1[dish.name]:
                 continue
-            assert Change("MOVE", names1[dish.name], dish) in diff
+            assert Change("MOVE", names1[dish.name], dish) in diff  # TODO better handling of this case
         except KeyError:
             matches = difflib.get_close_matches(dish.name, names1)
             if len(matches) == 1:
