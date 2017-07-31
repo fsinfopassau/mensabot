@@ -4,6 +4,7 @@ import math
 import sched
 import time as systime
 
+import requests
 from sqlalchemy import and_
 
 from mensabot.bot.command import mensa
@@ -45,15 +46,18 @@ def schedule_notification(now=None):
                           second=0, microsecond=0)
     later = now + dtm.timedelta(minutes=SCHED_INTERVAL)
 
-    (open, close, day, offset), menu = get_next_mensa_open(now)
-    next_close = dtm.datetime.combine(day.date(), close)
-    if next_close - now > dtm.timedelta(days=1):
-        later = next_close - dtm.timedelta(days=1)
-        logger.debug("Not sending any notifications at {:%H:%M} as no menu is available "
-                     "(next notifications start at {:%Y-%m-%d %H:%M} as next menu is available for {:%Y-%m-%d})"
-                     .format(now, later, day))
-    else:
-        logger.debug("Scheduling notifications between {:%H:%M} and {:%H:%M}".format(now, later))
+    try:
+        (open, close, day, offset), menu = get_next_mensa_open(now)
+        next_close = dtm.datetime.combine(day.date(), close)
+        if next_close - now > dtm.timedelta(days=1):
+            later = next_close - dtm.timedelta(days=1)
+            logger.debug("Not sending any notifications at {:%H:%M} as no menu is available "
+                         "(next notifications start at {:%Y-%m-%d %H:%M} as next menu is available for {:%Y-%m-%d})"
+                         .format(now, later, day))
+        else:
+            logger.debug("Scheduling notifications between {:%H:%M} and {:%H:%M}".format(now, later))
+    except requests.exceptions.RequestException:
+        logger.warning("Could not get next opening time of mensa, trying again in 1 minute", exc_info=True)
 
     SCHED.enterabs(later.timestamp(), 10, schedule_notification, [later])
 
