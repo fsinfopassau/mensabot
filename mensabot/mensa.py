@@ -5,11 +5,14 @@ import logging
 import os
 import warnings
 from collections import OrderedDict
+from pprint import pformat
 from typing import Dict, List, NamedTuple, Tuple
 
 import regex as re
 import requests
 from bs4 import BeautifulSoup
+from dateutil.easter import easter
+from dateutil.relativedelta import TH, TU, relativedelta
 
 from mensabot.bot.util import ensure_date
 from mensabot.config_default import MENU_STORE
@@ -183,7 +186,7 @@ def get_next_open(dt: dtm.datetime, loc: str) -> open_info:
         else:
             pass  # continue searching for the next open date
 
-    return None  # not open in the foreseeable future
+    raise AssertionError("Mensa '%s' not open in the foreseeable future after %s" % (loc, dt))
 
 
 def get_next_mensa_open(dt: dtm.datetime = None, loc: str = "mensen/mensa-uni-passau") \
@@ -193,19 +196,18 @@ def get_next_mensa_open(dt: dtm.datetime = None, loc: str = "mensen/mensa-uni-pa
     offset = 0
     while menu is None:
         next_open = get_next_open(dt, loc)
-        if not next_open:
-            return None
         offset += next_open.offset
         if offset > 31:
-            return None
+            raise AssertionError("Mensa '%s' has no menu in the foreseeable future after %s" % (loc, dt))
         open, close, day, _ = next_open
         menu = get_menu_day(day)
         dt = day + dtm.timedelta(days=1)
     return open_info(open, close, day, offset), menu
 
 
-DATES_URL = "http://www.uni-passau.de/studium/waehrend-des-studiums/semesterterminplan/"
-DATES_HOLIDAY = {"Vorlesungsbeginn": True, "Vorlesungsende": False}
+DATES_URL = "http://www.uni-passau.de/studium/waehrend-des-studiums/semesterterminplan/vorlesungszeiten/"
+semester = NamedTuple("semester", [("name", str), ("is_winter", bool), ("start", dtm.date), ("end", dtm.date),
+                                   ("holidays", List[Tuple[dtm.date, dtm.date]])])
 
 
 def is_holiday(dt: dtm.datetime = None) -> bool:
@@ -213,26 +215,57 @@ def is_holiday(dt: dtm.datetime = None) -> bool:
     Check whether a certain date is during the holidays, the so called "vorlesungsfreie Zeit".
     """
 
-    dt = dt or dtm.datetime.now()
-    next_date = next((t, d) for t, d in get_semester_dates() if d >= dt.date())
-    is_holiday = DATES_HOLIDAY[next_date[0]]
-    return is_holiday
+    dt = dt.date() or dtm.date.today()
+    semester_dates = get_semester_dates()
+    current_semester = next((sem for sem in reversed(semester_dates) if sem.start <= dt), None)
+    assert current_semester, "Could not find semester for date %s, available semesters are:\n%s" \
+                             % (dt, pformat(semester_dates))
+    return current_semester.end < dt or any(start <= dt <= end for start, end in current_semester.holidays)
 
 
 @functools.lru_cache(maxsize=1)
-def get_semester_dates() -> List[Tuple[str, dtm.date]]:
+def get_semester_dates() -> List[semester]:
     """
-    Get a list of the dates of start and end of lecture as a list of Tuples with either
-    "Vorlesungsbeginn" or "Vorlesungsende" and the respective date.
+    Get a list of the start and end dates of semesters coming and past, including the ranges of dates which
+    have no lectures according to the website. So this does not include public holidays or weekends (where the
+    university is closed completely).
     """
 
     r = requests.get(DATES_URL)
     r.raise_for_status()
     soup = BeautifulSoup(r.text, 'html.parser')
-    dates = [(elem.text, dtm.datetime.strptime(elem.find_previous_sibling("td").text, "%d.%m.%Y").date()) for elem in
-             soup.find_all("td", text=re.compile("^Vorlesungs(beginn|ende)"))]
-    dates.sort(key=lambda e: e[1])
-    return dates
+    table = soup.find(id="up-content").next_sibling.find("table")
+    assert list(table.find("thead").strings) == ['Semester', 'Beginn', 'Ende',
+                                                 'Verfügungstag der Universität Passau (vorlesungsfrei)']
+    assert table.next_sibling.string == \
+           "Die Vorlesungszeit wird unterbrochen vom 24. Dezember bis einschließlich 6. Januar, vom Gründonnerstag " \
+           "bis einschließlich Dienstag nach Ostern sowie am Dienstag nach Pfingsten!"
+    semesters = []
+    for semester_tr in table.find("tbody").find_all("tr"):
+        name, *dates = semester_tr.strings
+        try:
+            dates = [dtm.datetime.strptime(d, "%d.%m.%Y").date() for d in dates]
+        except ValueError:
+            continue
+        start, end, bruecke = dates
+        holidays = [(bruecke, bruecke)]
+        winter_sem = name.startswith("Winter")
+        assert winter_sem == (start.year != end.year)
+
+        if winter_sem:
+            # 24. Dezember bis einschließlich 6. Januar
+            holidays.append((dtm.date(start.year, 12, 24), dtm.date(end.year, 1, 6)))
+        else:
+            easter_date = easter(start.year)
+            # Gründonnerstag bis einschließlich Dienstag nach Ostern
+            holidays.append((easter_date + relativedelta(weekday=TH(-1)), easter_date + relativedelta(weekday=TU(+1))))
+            # Dienstag nach Pfingsten
+            holidays.append((easter_date + relativedelta(days=50), easter_date + relativedelta(days=51)))
+
+        semesters.append(semester(name, winter_sem, start, end, holidays))
+
+    semesters.sort(key=lambda e: e.start)
+    return semesters
 
 
 def clear_caches():
