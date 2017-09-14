@@ -1,3 +1,4 @@
+import datetime as dtm
 import logging
 
 from telegram import Bot, Message
@@ -13,16 +14,18 @@ access_logger = logging.getLogger("mensabot.access")
 
 
 class MensaBot(Bot):
-    def __init__(self, token, base_url=None, base_file_url=None, request=None):
-        super().__init__(token, base_url, base_file_url, request)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.last_update = dtm.datetime.fromtimestamp(0)
 
-    def getUpdates(self, offset=None, limit=100, timeout=0, network_delay=5., **kwargs):
-        updates = super().getUpdates(offset, limit, timeout, network_delay, **kwargs)
+    def get_updates(self, *args, **kwargs):
+        updates = super().get_updates(*args, **kwargs)
+        self.last_update = dtm.datetime.now()
         for update in updates:
             access_logger.info("Received update: %s" % update.to_json())
         return updates
 
-    def sendMessage(self, *args, **kwargs):
+    def send_message(self, *args, **kwargs):
         from mensabot.bot.tasks import SCHED
 
         retries = kwargs.pop("__sendMessage_retries", 0)
@@ -32,7 +35,7 @@ class MensaBot(Bot):
 
         try:
             access_logger.debug("Sending message (%s, %s)" % (args, kwargs))
-            msg = super().sendMessage(*args, **kwargs)
+            msg = super().send_message(*args, **kwargs)
             access_logger.info("Message sent: %s" % (msg.to_json() if isinstance(msg, Message) else msg))
             cb(msg)
             return msg
@@ -77,11 +80,15 @@ class MensaBot(Bot):
             cb(e)
             raise
 
-    def editMessageText(self, *args, **kwargs):
+    def edit_message_text(self, *args, **kwargs):
         access_logger.debug("Editing message text (%s, %s)" % (args, kwargs))
-        msg = super().editMessageText(*args, **kwargs)
+        msg = super().edit_message_text(*args, **kwargs)
         access_logger.info("Message text edited: %s" % (msg.to_json() if isinstance(msg, Message) else msg))
         return msg
+
+    getUpdates = get_updates
+    sendMessage = send_message
+    editMessageText = edit_message_text
 
 
 logger = logging.getLogger("mensabot.ext")

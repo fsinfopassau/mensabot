@@ -15,6 +15,7 @@ from mensabot.mensa import clear_caches, get_menu_week, get_next_mensa_open
 
 SCHED = sched.scheduler(systime.time, systime.sleep)
 SCHED_INTERVAL = 1
+SCHED_TASK_COUNT = 4
 
 logger = logging.getLogger("mensabot.sched")
 
@@ -37,6 +38,13 @@ def run_sched():
             updater.stop()
         except:
             logger.error("Exception from scheduler, restarting.", exc_info=1)
+            if len(SCHED.queue) < SCHED_TASK_COUNT:
+                logger.error("Only %d running tasks left: %s" %
+                             (len(SCHED.queue), [task_name(task) for task in SCHED.queue]))
+
+
+def task_name(task):
+    return getattr(task.action, '__name__', repr(task.action))
 
 
 def schedule_notification(now=None):
@@ -81,7 +89,10 @@ def schedule_notification(now=None):
 def schedule_update_menu():
     logger.debug("Fetching new menu")
     SCHED.enter(5 * 60, 11, schedule_update_menu)
-    get_menu_week(dtm.date.today().isocalendar()[1], disable_cache=True)
+    try:
+        get_menu_week(dtm.date.today().isocalendar()[1], disable_cache=True)
+    except requests.exceptions.RequestException:
+        logger.warning("Could not fetch new menu, trying again later", exc_info=True)
 
 
 def schedule_clear_cache():
@@ -92,17 +103,22 @@ def schedule_clear_cache():
 
 
 def schedule_clear_mensa_notifications():
-    (open, close, day, offset), menu = get_next_mensa_open()
-    next_close = dtm.datetime.combine(day.date(), close)
-    SCHED.enterabs((next_close + dtm.timedelta(minutes=1)).timestamp(), 1000, schedule_clear_mensa_notifications)
+    try:
+        (open, close, day, offset), menu = get_next_mensa_open()
+        next_close = dtm.datetime.combine(day.date(), close)
+        SCHED.enterabs((next_close + dtm.timedelta(minutes=1)).timestamp(), 1000, schedule_clear_mensa_notifications)
 
-    if mensa.notifications_date != day.date():
-        logger.debug("Dropping mensa notifications from {:%Y-%m-%d}, because new mensa date is {:%Y-%m-%d}"
-                     " (next reset on that day at {:%H:%M})"
-                     .format(mensa.notifications_date, day.date(), next_close))
-        mensa.notifications.clear()
-        mensa.notifications_date = day.date()
-    else:
-        logger.debug("Not dropping mensa notifications from {:%Y-%m-%d}, because it is still the next mensa date "
-                     " (next reset on that day at {:%H:%M})"
-                     .format(mensa.notifications_date, next_close))
+        if mensa.notifications_date != day.date():
+            logger.debug("Dropping mensa notifications from {:%Y-%m-%d}, because new mensa date is {:%Y-%m-%d}"
+                         " (next reset on that day at {:%H:%M})"
+                         .format(mensa.notifications_date, day.date(), next_close))
+            mensa.notifications.clear()
+            mensa.notifications_date = day.date()
+        else:
+            logger.debug("Not dropping mensa notifications from {:%Y-%m-%d}, because it is still the next mensa date "
+                         " (next reset on that day at {:%H:%M})"
+                         .format(mensa.notifications_date, next_close))
+    except requests.exceptions.RequestException:
+        logger.warning("Could not get next opening time of mensa, trying again in 1 minute", exc_info=True)
+        SCHED.enterabs((dtm.datetime.now() + dtm.timedelta(minutes=1)).timestamp(), 1000,
+                       schedule_clear_mensa_notifications)

@@ -44,6 +44,8 @@ setup(
         'python-telegram-bot',
         'sqlalchemy',
         'sh',
-        'pyyaml'
+        'pyyaml',
+        'flask',
+        'healthcheck'
     ]
 )
