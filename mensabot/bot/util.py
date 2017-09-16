@@ -54,6 +54,7 @@ com_logger = logging.getLogger("mensabot.bot.command")
 
 
 def ComHandlerFunc(command, **kwargs):
+    # TODO use pass_args param
     def func_decorator(func):
         def func_wrapper(bot, update):
             try:

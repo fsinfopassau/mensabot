@@ -28,6 +28,8 @@ class MensaBot(Bot):
     def send_message(self, *args, **kwargs):
         from mensabot.bot.tasks import SCHED
 
+        # TODO use telegram-bot MessageQueue for rate limiting
+        # https://github.com/python-telegram-bot/python-telegram-bot/wiki/Avoiding-spam-limits
         retries = kwargs.pop("__sendMessage_retries", 0)
         cb = kwargs.pop("callback", None)
         if not cb:
@@ -96,3 +98,6 @@ request = Request(con_pool_size=8)
 bot = MensaBot(token=TELEGRAM_TOKEN, request=request)
 updater = Updater(bot=bot)
 dispatcher = updater.dispatcher
+
+# TODO add error handler
+# https://github.com/python-telegram-bot/python-telegram-bot/wiki/Exception-Handling

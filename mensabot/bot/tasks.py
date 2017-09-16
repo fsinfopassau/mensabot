@@ -13,6 +13,8 @@ from mensabot.bot.ext import updater
 from mensabot.db import CHATS, connection
 from mensabot.mensa import clear_caches, get_menu_week, get_next_mensa_open
 
+# TODO use telegram task queue
+# https://github.com/python-telegram-bot/python-telegram-bot/wiki/Extensions-%E2%80%93-JobQueue
 SCHED = sched.scheduler(systime.time, systime.sleep)
 SCHED_INTERVAL = 1
 SCHED_TASK_COUNT = 4

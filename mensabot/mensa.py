@@ -46,7 +46,7 @@ def get_menu_week(week: int, disable_cache=False) -> List[dish]:
 
     if week in cache and not disable_cache:
         dt, list = cache[week]
-        if dtm.datetime.now() - dt < dtm.timedelta(minutes=5):
+        if dtm.datetime.now() - dt < dtm.timedelta(minutes=5):  # TODO make this configurable
             return list
     list = fetch_menu_week(week)
     cache[week] = (dtm.datetime.now(), list)
@@ -186,6 +186,7 @@ def get_next_open(dt: dtm.datetime, loc: str) -> open_info:
         else:
             pass  # continue searching for the next open date
 
+    # FIXME this might happen in the vorlesungsfreie zeit
     raise AssertionError("Mensa '%s' not open in the foreseeable future after %s" % (loc, dt))
 
 

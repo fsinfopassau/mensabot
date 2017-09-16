@@ -11,11 +11,11 @@ formatters:
     format: 'mensabot-%(name)s: %(message)s'
 
 handlers:
-  debug:
-    class: logging.handlers.SysLogHandler
-    level: DEBUG
-    address: /dev/log
-    formatter: syslog
+#  debug:
+#    class: logging.handlers.SysLogHandler
+#    level: DEBUG
+#    address: /dev/log
+#    formatter: syslog
 
 #  debug:
 #    class: logging.handlers.RotatingFileHandler
@@ -24,6 +24,8 @@ handlers:
 #    level: DEBUG
 #    formatter: simple
 #    filename: log/debug.log
+
+# TODO fitler werkzeug / flask API messages
 
   error:
     class: logging.handlers.WatchedFileHandler
@@ -43,7 +45,7 @@ handlers:
   console:
     class: logging.StreamHandler
     formatter: simple
-    level: INFO
+    level: DEBUG
     stream: ext://sys.stdout
 
 loggers:
@@ -59,11 +61,11 @@ loggers:
 
   sh.command:
     level: INFO
-    handlers: [error, debug]
+    handlers: [error, console]
     propagate: False
 
 root:
   level: DEBUG
-  handlers: [error, debug, console]
+  handlers: [error, console]
 
 disable_existing_loggers: False

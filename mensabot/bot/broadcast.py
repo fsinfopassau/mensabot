@@ -7,6 +7,9 @@ from mensabot.bot.ext import updater
 from mensabot.bot.tasks import SCHED
 
 
+# TODO use telegram-bot MessageQueue for rate limiting
+# https://github.com/python-telegram-bot/python-telegram-bot/wiki/Avoiding-spam-limits
+
 def main():
     if not os.path.isfile("mensabot.sqlite"):
         raise AssertionError(
