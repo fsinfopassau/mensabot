@@ -5,7 +5,44 @@ from healthcheck import EnvironmentDump, HealthCheck
 
 app = Flask(__name__)
 
-health = HealthCheck(app, "/healthcheck")
+
+class FilteredHealthCheck(HealthCheck):
+    def check(self):
+        import time as time
+        from functools import reduce
+        from healthcheck import check_reduce
+
+        results = []
+        checkers = self.checkers
+        if request.args.get("include"):
+            checkers = [c for c in checkers if c.__name__ in request.args.getlist("include")]
+        if request.args.get("exclude"):
+            checkers = [c for c in checkers if c.__name__ not in request.args.getlist("exclude")]
+        for checker in checkers:
+            if checker in self.cache and self.cache[checker].get('expires') >= time.time():
+                result = self.cache[checker]
+            else:
+                result = self.run_check(checker)
+                self.cache[checker] = result
+            results.append(result)
+
+        passed = reduce(check_reduce, results, True)
+
+        if passed:
+            message = "OK"
+            if self.success_handler:
+                message = self.success_handler(results)
+
+            return message, self.success_status, self.success_headers
+        else:
+            message = "NOT OK"
+            if self.failed_handler:
+                message = self.failed_handler(results)
+
+            return message, self.failed_status, self.failed_headers
+
+
+health = FilteredHealthCheck(app, "/healthcheck")
 envdump = EnvironmentDump(app, "/environment")
 
 
@@ -21,8 +58,7 @@ envdump.add_section("version", json_version)
 def tasks_running():
     from mensabot.bot.tasks import SCHED, SCHED_TASK_COUNT, task_name
     tasks = len(SCHED.queue)
-    return tasks >= SCHED_TASK_COUNT, "%d tasks running: %s" % \
-           (tasks, [task_name(task) for task in SCHED.queue])
+    return tasks >= SCHED_TASK_COUNT, {"count": tasks, "tasks": [task_name(task) for task in SCHED.queue]}
 
 
 @health.add_check
