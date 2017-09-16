@@ -12,7 +12,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='mensabot',
-    version='0.3.1',
+    version='0.3.2',
     description='telegram bot for uni passau mensa',
     long_description=long_description,
     url='https://github.com/N-Coder/mensabot',
