@@ -1,7 +1,9 @@
 import importlib
 
 from telegram import ParseMode
+from telegram.ext import Filters, MessageHandler
 
+from mensabot.bot.ext import dispatcher
 from mensabot.bot.util import ComHandlerFunc, get_args
 from mensabot.format import get_abbr
 
@@ -14,12 +16,42 @@ def init_commands():
     for mod in __all__:
         importlib.import_module("." + mod, __name__)
 
+    def unknown(bot, update):
+        bot.send_message(chat_id=update.message.chat_id, text="Sorry, I didn't understand that command.")
+
+    unknown_handler = MessageHandler(Filters.command, unknown)
+    dispatcher.add_handler(unknown_handler)
+
 
 @ComHandlerFunc("start")
 def start(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id, text= \
         "MensaBot Passau to your service. "
         "Try /mensa or /cafete and add a time or location if you want.")
+
+
+@ComHandlerFunc("help")
+def help(bot, update):
+    bot.sendMessage(chat_id=update.message.chat_id, text= \
+        "MensaBot Passau to your service. "
+        "Try /mensa or /cafete and add a time or location if you want. "
+        "Examples:\n"
+        "/mensa tomorrow\n"
+        "/cafete audimax\n"
+        "/cafete nk 26.09.\n"
+        "/abbr MV\n\n"
+        "For configuration use /get and /set.")
+
+
+@ComHandlerFunc("status")
+def status(bot, update):
+    from mensabot.bot.api import health
+
+    bot.sendMessage(chat_id=update.message.chat_id, text= \
+        ("Everything is fine! 😊\n" if health.check(request=False)[1] == health.success_status else
+         "Uhoh. There seem to be some problems! 😕\n") +
+        "You can also check my uptime status online:\n"
+        "http://status.mensabot.niko.voidptr.de")
 
 
 @ComHandlerFunc("abbr")

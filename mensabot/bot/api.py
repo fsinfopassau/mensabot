@@ -7,17 +7,22 @@ app = Flask(__name__)
 
 
 class FilteredHealthCheck(HealthCheck):
-    def check(self):
+    def check(self, request=None):
         import time as time
         from functools import reduce
         from healthcheck import check_reduce
 
         results = []
         checkers = self.checkers
-        if request.args.get("include"):
-            checkers = [c for c in checkers if c.__name__ in request.args.getlist("include")]
-        if request.args.get("exclude"):
-            checkers = [c for c in checkers if c.__name__ not in request.args.getlist("exclude")]
+
+        if request is not False:
+            if request is None:
+                from flask import request
+            if request.args.get("include"):
+                checkers = [c for c in checkers if c.__name__ in request.args.getlist("include")]
+            if request.args.get("exclude"):
+                checkers = [c for c in checkers if c.__name__ not in request.args.getlist("exclude")]
+
         for checker in checkers:
             if checker in self.cache and self.cache[checker].get('expires') >= time.time():
                 result = self.cache[checker]
