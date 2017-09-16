@@ -6,6 +6,12 @@ import yaml
 
 ECHO_SQL = False
 
+API_ARGS = {"debug": False, "use_reloader": False}
+
+
+def configure_api(app):
+    app.config["LOGGER_NAME"] = "mensabot.bot.api"
+
 
 def configure_logging():
     # logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)

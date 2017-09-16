@@ -128,3 +128,17 @@ def json_schedule():
     return jsonify([{"time": t.time, "priority": t.priority, "action": repr(t.action), "argument": t.argument,
                      "kwargs": t.kwargs, "name": task_name(t)}
                     for t in SCHED.queue])
+
+
+def start_app():
+    from threading import Thread
+    from mensabot.config_default import API_ARGS
+
+    Thread(target=app.run, name="flask", daemon=True, kwargs=API_ARGS).start()
+
+
+def run_app():
+    from mensabot.config_default import configure_api
+
+    configure_api(app)
+    app.run()
