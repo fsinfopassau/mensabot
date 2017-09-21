@@ -1,3 +1,6 @@
+# TODO filter werkzeug / flask API messages
+# TODO check Access logging
+
 version: 1
 
 filters:
@@ -11,11 +14,11 @@ formatters:
     format: 'mensabot-%(name)s: %(message)s'
 
 handlers:
-#  debug:
-#    class: logging.handlers.SysLogHandler
-#    level: DEBUG
-#    address: /dev/log
-#    formatter: syslog
+  debug:
+    class: logging.handlers.SysLogHandler
+    level: DEBUG
+    address: /dev/log
+    formatter: syslog
 
 #  debug:
 #    class: logging.handlers.RotatingFileHandler
@@ -24,8 +27,6 @@ handlers:
 #    level: DEBUG
 #    formatter: simple
 #    filename: log/debug.log
-
-# TODO fitler werkzeug / flask API messages
 
   error:
     class: logging.handlers.WatchedFileHandler
@@ -45,7 +46,7 @@ handlers:
   console:
     class: logging.StreamHandler
     formatter: simple
-    level: DEBUG
+    level: INFO
     stream: ext://sys.stdout
 
 loggers:
@@ -61,11 +62,11 @@ loggers:
 
   sh.command:
     level: INFO
-    handlers: [error, console]
+    handlers: [error, debug]
     propagate: False
 
 root:
   level: DEBUG
-  handlers: [error, console]
+  handlers: [error, debug, console]
 
 disable_existing_loggers: False
