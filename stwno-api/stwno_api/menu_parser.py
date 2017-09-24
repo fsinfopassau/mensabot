@@ -6,13 +6,13 @@ import warnings
 from collections import Counter
 from typing import List, NamedTuple, Optional
 
-import regex as re
+__all__ = ["Dish", "Change", "generate_diff"]
 
 PATTERN_TAG = "([AH]?[A-Z]|MV|VG|1?[0-9])"
 PATTERN_ZUSATZ = PATTERN_TAG + "(" + PATTERN_TAG + "[,/]\s*)*"
 PATTERN_KENNZ = "\s*[,*]\s*(" + PATTERN_TAG + "(" + PATTERN_TAG + "[,/]\s*)*)$"
 
-dish = NamedTuple("dish", [
+Dish = NamedTuple("Dish", [
     ("datum", dtm.datetime),
     ("name", str),
     ("warengruppe", str),
@@ -24,9 +24,9 @@ dish = NamedTuple("dish", [
 ])
 
 
-def parse_dish(row: dict) -> dish:
+def parse_dish(row: dict) -> Dish:
     """
-    Parse a row from the csv file as dish, trying to extract further information from the name.
+    Parse a row from the csv file as Dish, trying to extract further information from the name.
     """
 
     row['datum'] = dtm.datetime.strptime(row['datum'], "%d.%m.%Y").date()
@@ -49,7 +49,7 @@ def parse_dish(row: dict) -> dish:
         row['kennz'] += Counter(kennz)
         del row['kennz']['']
 
-    return dish(**row)
+    return Dish(**row)
 
 
 def __parse_name(str_in):
@@ -103,18 +103,18 @@ def __parse_name(str_in):
 ########################################################################################################################
 
 class Change(object):
-    def __init__(self, type: str, from_dish: Optional[dish], to_dish: Optional[dish]):
+    def __init__(self, type: str, from_dish: Optional[Dish], to_dish: Optional[Dish]):
         assert from_dish != to_dish
         self.type = type  # type: str
-        self.from_dish = from_dish  # type: Optional[dish]
-        self.to_dish = to_dish  # type: Optional[dish]
+        self.from_dish = from_dish  # type: Optional[Dish]
+        self.to_dish = to_dish  # type: Optional[Dish]
 
         if not self.from_dish or not self.to_dish:
             self.diff = {}
         else:
             self.diff = {
                 attr: (self.from_dish[idx], self.to_dish[idx])
-                for idx, attr in enumerate(dish._fields)
+                for idx, attr in enumerate(Dish._fields)
                 if self.from_dish[idx] != self.to_dish[idx]
             }
 
@@ -125,7 +125,7 @@ class Change(object):
             else:
                 assert from_dish.warengruppe != to_dish.warengruppe
 
-    def dish(self) -> dish:
+    def dish(self) -> Dish:
         return self.to_dish if self.to_dish else self.from_dish
 
     def __eq__(self, other):
@@ -220,6 +220,8 @@ def __compare_changed_wg(changed_wg1, changed_wg2):
             matches = difflib.get_close_matches(dish.name, names1)
             if len(matches) == 1:
                 if not Change("RENAME", names1[matches[0]], dish) in diff:
+                    # https://streamhacker.com/2011/10/31/fuzzy-string-matching-python/
+                    # http://chairnerd.seatgeek.com/fuzzywuzzy-fuzzy-string-matching-in-python/
                     warnings.warn("Dish %s renamed to %s, but only found in one direction. Diff will be invalid!" %
                                   (dish, matches[0]))  # TODO better handling of this case
             elif removed:
@@ -228,55 +230,3 @@ def __compare_changed_wg(changed_wg1, changed_wg2):
                 diff.append(Change("ADD", None, dish))
 
     return diff + removed
-
-
-########################################################################################################################
-
-def main():
-    import argparse
-    import csv
-    from mensabot.mensa import PRICES_CATEGORIES, MENU_TYPES
-
-    parser = argparse.ArgumentParser(description='Compare two mensa menus.')
-    parser.add_argument('path', action='store')
-    parser.add_argument('old_file', action='store')
-    parser.add_argument('old_hex', action='store')
-    parser.add_argument('old_mode', action='store')
-    parser.add_argument('new_file', action='store')
-    parser.add_argument('new_hex', action='store')
-    parser.add_argument('new_mode', action='store')
-    args = parser.parse_args()
-
-    with open(args.old_file, "r", encoding="iso8859_3") as f:
-        menu1 = [parse_dish(row) for row in csv.DictReader(f.readlines(), delimiter=';')]
-    with open(args.new_file, "r", encoding="iso8859_3") as f:
-        menu2 = [parse_dish(row) for row in csv.DictReader(f.readlines(), delimiter=';')]
-
-    diff = generate_diff(menu1, menu2)
-    diff = sorted(diff, key=lambda d: (d.dish().datum, MENU_TYPES.index(d.dish().warengruppe[0]), d.dish().warengruppe))
-    for x in diff:
-        if list(x.diff.keys()) == ["warengruppe"]:
-            continue
-
-        weekday = x.dish().datum.strftime("%a")
-        if "name" in x.diff:
-            print("[%s ~] %s ->️ %s" % ((weekday,) + x.diff["name"]))
-        elif not x.from_dish:
-            print("[%s +] %s" % (weekday, x.to_dish.name))
-        elif not x.to_dish:
-            print("[%s -] %s" % (weekday, x.from_dish.name))
-        else:
-            print("[%s ~] %s" % (weekday, x.from_dish.name))
-
-        if any(s in x.diff for s in PRICES_CATEGORIES):
-            print("\tPreis: (%s/%s/%s) ->️ (%s/%s/%s)" %
-                  (x.from_dish.stud, x.from_dish.bed, x.from_dish.gast,
-                   x.to_dish.stud, x.to_dish.bed, x.to_dish.gast))
-        if "kennz" in x.diff:
-            print("\tKennz: %s -> %s" % tuple(",".join(c.keys()) for c in x.diff["kennz"]))
-        if "zusatz" in x.diff:
-            print("\tZusatz: %s ->️ %s" % tuple(",".join(c.keys()) for c in x.diff["zusatz"]))
-
-
-if __name__ == "__main__":
-    main()

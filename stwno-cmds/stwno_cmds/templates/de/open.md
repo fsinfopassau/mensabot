@@ -1,8 +1,8 @@
 {% import 'de/utils.md' as utils %}
-Cafete {{ loc }} 
+Cafete {{ location.name }}
 {%- if not open_info %}
  zur Zeit geschlossen.
-{% elif open_info.offset == 0 and date.time() < open_info.open %}
+{% elif open_info.offset == 0 and datetime.time() < open_info.open %}
  geschlossen, öffnet um {{ open_info.open|format_time('short', locale=locale) }} Uhr.
 {% elif open_info.offset == 0 %}
  offen bis {{ open_info.close|format_time('short', locale=locale) }} Uhr.
