@@ -62,14 +62,16 @@ class Passau(Institution):
             except ValueError:
                 continue
             start, end, bruecke = dates
-            holidays = [(bruecke, bruecke)]
+            lecture_free = [(bruecke, bruecke)]
+            holidays = []
             winter_sem = name.startswith("Winter")
             assert winter_sem == (start.year != end.year)
 
             if winter_sem:
                 # 24. Dezember bis einschließlich 6. Januar
-                holidays.append((dtm.date(start.year, 12, 24),
-                                 dtm.date(end.year, 1, 6)))
+                lecture_free.append((dtm.date(start.year, 12, 24), (dtm.date(end.year, 1, 6))))
+                holidays.append((dtm.date(start.year, 12, 24), dtm.date(end.year, 1, 1)))
+                holidays.append(((dtm.date(end.year, 1, 6)), (dtm.date(end.year, 1, 6))))
             else:
                 easter_date = easter(start.year)
                 # Gründonnerstag bis einschließlich Dienstag nach Ostern
@@ -79,7 +81,8 @@ class Passau(Institution):
                 holidays.append((easter_date + relativedelta(days=50),
                                  easter_date + relativedelta(days=51)))
 
-            semesters.append(Semester(name, winter_sem, start, end, holidays))
+            lecture_free += holidays
+            semesters.append(Semester(name, winter_sem, start, end, lecture_free, holidays))
 
         semesters.sort(key=lambda e: e.start)
         return semesters

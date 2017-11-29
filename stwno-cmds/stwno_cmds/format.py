@@ -21,7 +21,7 @@ def user_config_defaults(**kwargs):
 
 def get_menu_formatted(api: StwnoApi, day: Union[dtm.datetime, dtm.date, str] = None, location: Location = None,
                        **kwargs) -> str:
-    day = ensure_date(day or dtm.date.today())
+    day = ensure_date(day or dtm.date.today())  # FIXME should be next time open
     location = location or api.institution.default_mensa
     kwargs = user_config_defaults(**kwargs)
 
@@ -47,7 +47,8 @@ def get_opening_times_formatted(api: StwnoApi, dt: dtm.datetime = None, location
 
     # schedule for the current week
     sched = [
-        Schedule(*api.get_opening_times(location)[(api.institution.is_holiday(day), day.isoweekday() - 1)], day=day)
+        Schedule(*api.get_opening_times(location)[(api.institution.is_lecture_free(day), day.isoweekday() - 1)],
+                 day=day)
         for day in [dt + dtm.timedelta(days=i - dt.weekday()) for i in range(7)]]
 
     return JINJA2_ENV.get_template("{}/open.md".format(kwargs["template"])).render(

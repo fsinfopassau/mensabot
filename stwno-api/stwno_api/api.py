@@ -29,7 +29,7 @@ class StwnoApi(object):
 
     OPENING_TIMES_URL = "https://stwno.de/de/gastronomie/%s"
     OPENING_DAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
-    OPENING_TIMEFRAME_HOLIDAY = {"vorlesungszeit": False, "vorlesungsfreie zeit": True}
+    IS_OPENING_TIMEFRAME_LECTURE_FREE = {"vorlesungszeit": False, "vorlesungsfreie zeit": True}
 
     def __init__(self, institution):
         self._institution = institution
@@ -77,7 +77,7 @@ class StwnoApi(object):
         Return the opening times for a certain location.
 
         :param location: the location, indicated by it's URL part
-        :return: a dict, mapping from the tuple (is during holidays, iso week day) to (opening time, closing time)
+        :return: a dict, mapping from the tuple (is during lecture free time, iso week day) to (opening time, closing time)
         """
         location = location or self.institution.default_cafeteria
         assert location in self.institution.locations
@@ -96,10 +96,10 @@ class StwnoApi(object):
                 continue
 
             timeframe = cols[0].text.lower().strip().strip(":") or timeframe
-            if timeframe not in self.OPENING_TIMEFRAME_HOLIDAY:
+            if timeframe not in self.IS_OPENING_TIMEFRAME_LECTURE_FREE:
                 warnings.warn("Skipping row with unknown timeframe '{}'".format(timeframe))
                 continue
-            holidays = self.OPENING_TIMEFRAME_HOLIDAY[timeframe]
+            is_lecture_free = self.IS_OPENING_TIMEFRAME_LECTURE_FREE[timeframe]
 
             days = cols[1].text.strip()
             days_match = re.match("({days}) ?- ?({days})".format(days="|".join(self.OPENING_DAYS)), days)
@@ -127,7 +127,7 @@ class StwnoApi(object):
             close = dtm.time(close_h, close_min)
 
             for day in days:
-                dates[(holidays, day)] = (open, close)
+                dates[(is_lecture_free, day)] = (open, close)
 
         return dates
 
@@ -142,7 +142,7 @@ class StwnoApi(object):
         location = location or self.institution.default_cafeteria
         times = self.get_opening_times(location)
         starting_from = starting_from or dtm.datetime.now()
-        days = [(i, starting_from + dtm.timedelta(days=i)) for i in range(6)]
+        days = [(i, ensure_date(starting_from + dtm.timedelta(days=i))) for i in range(6)]
         for open, close, offset, day in (times[(self.institution.is_holiday(d), d.isoweekday() - 1)] + (i, d)
                                          for i, d in days):
             # print("{} {:%a %Y-%m-%d} {:%H:%M} {:%H:%M}".format(offset, day, open, close))
@@ -173,7 +173,7 @@ class StwnoApi(object):
         starting_from = starting_from or dtm.datetime.now()
         menu = None
         offset = 0
-        while menu is None:
+        while not menu:
             next_open = self.get_next_open(location, starting_from)
             if not next_open:
                 return None
@@ -183,7 +183,7 @@ class StwnoApi(object):
                 return None
             open, close, day, _ = next_open
             menu = self.get_menu_of_day(day)
-            starting_from = day + dtm.timedelta(days=1)
+            starting_from = dtm.datetime.combine(day, close)
         # noinspection PyUnboundLocalVariable
         return OpenInfo(open, close, day, offset), menu
 
@@ -254,5 +254,5 @@ class StoringStwnoApi(StwnoApi):
 
         self.logger.debug("Menu changed!")
         for l in self.change_listeners:
-            l(week, old, new)
+            l(week, location, old, new)
         return new

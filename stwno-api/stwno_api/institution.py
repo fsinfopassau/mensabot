@@ -7,11 +7,14 @@ from typing import Callable, List, NamedTuple, Optional, Tuple, Union
 
 import requests
 
+from stwno_api.util import ensure_date
+
 __all__ = ["Institution", "Semester", "Location", "LocationType"]
 
 Semester = NamedTuple("Semester", [("name", str),
                                    ("is_winter", bool),
                                    ("start", dtm.date), ("end", dtm.date),
+                                   ("lecture_free", List[Tuple[dtm.date, dtm.date]]),
                                    ("holidays", List[Tuple[dtm.date, dtm.date]])])
 
 
@@ -116,14 +119,31 @@ class Institution(ABC):
 
     semester_dates = property(__get_semester_dates)
 
-    def is_holiday(self, dt: dtm.datetime = None) -> bool:
+    def is_holiday(self, dt: Union[dtm.datetime, dtm.date, str] = None) -> bool:
         """
-        Check whether a certain date is during the holidays, the so called "vorlesungsfreie Zeit".
+        Check whether a certain date is during public holidays, where everything is closed.
         """
 
-        dt = dt.date() or dtm.date.today()
+        dt = ensure_date(dt) or dtm.date.today()
+        if dt.weekday() == 6:  # Sun
+            return True
         semester_dates = self.semester_dates
         current_semester = next((sem for sem in reversed(semester_dates) if sem.start <= dt), None)
         assert current_semester, "Could not find semester for date %s, available semesters are:\n%s" \
                                  % (dt, pformat(semester_dates))
-        return current_semester.end < dt or any(start <= dt <= end for start, end in current_semester.holidays)
+        return any(start <= dt <= end for start, end in current_semester.holidays)
+
+    def is_lecture_free(self, dt: Union[dtm.datetime, dtm.date, str] = None) -> bool:
+        """
+        Check whether a certain date is during the lecture free time, the so called "vorlesungsfreie Zeit".
+        """
+
+        dt = ensure_date(dt) or dtm.date.today()
+        if dt.weekday() == 6:  # Sun
+            return True
+        semester_dates = self.semester_dates
+        current_semester = next((sem for sem in reversed(semester_dates) if sem.start <= dt), None)
+        assert current_semester, "Could not find semester for date %s, available semesters are:\n%s" \
+                                 % (dt, pformat(semester_dates))
+        return current_semester.end < dt or \
+               any(start <= dt <= end for start, end in (current_semester.lecture_free + current_semester.holidays))
