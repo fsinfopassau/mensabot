@@ -20,7 +20,7 @@ def configure_logging():
         logging.config.dictConfig(yaml.load(f))
 
 
-from .config import *
+from .local_config import *
 
 IS_DEVELOPMENT = DEPLOY_MODE == "DEVELOPMENT"
 TELEGRAM_TOKEN = TOKENS[DEPLOY_MODE]

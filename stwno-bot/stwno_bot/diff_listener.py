@@ -2,7 +2,6 @@ import datetime as dtm
 import os
 
 import sh
-
 from mensabot import mensa as mensa_api
 from mensabot.bot.command import mensa as mensa_cmd
 from mensabot.bot.command.mensa import edit_menu_message, send_menu_update

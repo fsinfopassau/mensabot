@@ -1,10 +1,9 @@
 import argparse
 import os
 
-from telegram import ParseMode
-
 from mensabot.bot.ext import updater
 from mensabot.bot.tasks import SCHED
+from telegram import ParseMode
 
 
 # TODO use telegram-bot MessageQueue for rate limiting

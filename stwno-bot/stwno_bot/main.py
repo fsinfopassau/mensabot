@@ -1,12 +1,12 @@
 import logging
 
-from mensabot.bot.api import start_app
-from mensabot.bot.command import init_commands
-from mensabot.bot.diff_listener import install_listener
-from mensabot.bot.ext import updater
-from mensabot.bot.tasks import run_sched
-from mensabot.config_default import configure_logging
-from mensabot.format import get_version
+from stwno_bot.api import start_app
+from stwno_bot.command import init_commands
+from stwno_bot.config import configure_logging
+from stwno_bot.diff_listener import install_listener
+from stwno_bot.ext import updater
+from stwno_bot.tasks import run_sched
+from stwno_cmds.util import get_version
 
 configure_logging()
 logger = logging.getLogger("mensabot.bot")

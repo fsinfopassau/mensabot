@@ -1,45 +1,9 @@
-import datetime as dtm
 import logging
 import sys
-from contextlib import contextmanager
 
 import requests
-from telegram import Message, MessageEntity, ParseMode, Update
+from telegram import MessageEntity, ParseMode
 from telegram.ext import CommandHandler
-
-from mensabot.bot.ext import dispatcher
-from mensabot.db import CHATS, connection
-
-
-@contextmanager
-def chat_record(id):
-    if isinstance(id, Message):
-        id = id.chat.id
-    elif isinstance(id, Update):
-        id = id.message.chat.id
-    elif not isinstance(id, int):
-        raise ValueError("ID '%s' is not an int." % id)
-    with connection() as (conn, execute):
-        res = execute(
-            CHATS.select().where(CHATS.c.id == id)
-        ).fetchone()
-        if not res:
-            execute(
-                CHATS.insert().values(id=id)
-            )
-            res = execute(
-                CHATS.select().where(CHATS.c.id == id)
-            ).fetchone()
-        yield res
-
-
-def ensure_date(dt):
-    if isinstance(dt, dtm.datetime):
-        return dt.date()
-    elif isinstance(dt, dtm.date):
-        return dt
-    else:
-        raise ValueError("'%s' can't be converted to a date" % dt)
 
 
 def get_args(update):

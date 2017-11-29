@@ -1,14 +1,17 @@
 import datetime as dtm
 import logging
 
+import requests
 from telegram import Bot, Message
 from telegram.error import *
 from telegram.error import InvalidToken, RetryAfter, Unauthorized
 from telegram.ext import Updater
 from telegram.utils.request import Request
 
-from mensabot.config_default import TELEGRAM_TOKEN
-from mensabot.db import CHATS, connection
+from stwno_api import CachedStwnoApi, StoringStwnoApi
+from stwno_api.institutions import Passau
+from stwno_bot.config import TELEGRAM_TOKEN
+from stwno_bot.db import CHATS, connection
 
 access_logger = logging.getLogger("mensabot.access")
 
@@ -26,8 +29,6 @@ class MensaBot(Bot):
         return updates
 
     def send_message(self, *args, **kwargs):
-        from mensabot.bot.tasks import SCHED
-
         # TODO use telegram-bot MessageQueue for rate limiting
         # https://github.com/python-telegram-bot/python-telegram-bot/wiki/Avoiding-spam-limits
         retries = kwargs.pop("__sendMessage_retries", 0)
@@ -93,11 +94,44 @@ class MensaBot(Bot):
     editMessageText = edit_message_text
 
 
-logger = logging.getLogger("mensabot.ext")
-request = Request(con_pool_size=8)
-bot = MensaBot(token=TELEGRAM_TOKEN, request=request)
-updater = Updater(bot=bot)
-dispatcher = updater.dispatcher
+class BotStwnoApi(StoringStwnoApi, CachedStwnoApi):
+    pass
+
+
+class StwnoBot(object):
+    logger = logging.getLogger("StwnoBot")
+
+    def __init__(self):
+        self.telegram_request = Request(con_pool_size=8)
+        self.http_session = requests.Session()
+        self.bot = MensaBot(token=TELEGRAM_TOKEN, request=self.telegram_request)
+        self.updater = Updater(bot=self.bot)
+        self.api = BotStwnoApi(Passau, store_dir="store")
+        self.api._session = lambda: self.http_session
+
+    @property
+    def dispatcher(self):
+        return self.updater.dispatcher
+
+    @property
+    def job_queue(self):
+        return self.updater.job_queue
+
+    def run(self):
+        configure_logging()
+        logger = logging.getLogger("mensabot.bot")
+
+        db_init()
+        logger.info("Starting web server")
+        start_app()
+        logger.info("Starting telegram bot")
+        init_commands()
+        install_listener()
+        updater.start_polling()
+        logger.info("{} listening...".format(get_version()))
+        run_sched()
+
+
 
 # TODO add error handler
 # https://github.com/python-telegram-bot/python-telegram-bot/wiki/Exception-Handling

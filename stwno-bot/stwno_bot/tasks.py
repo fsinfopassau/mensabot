@@ -1,23 +1,12 @@
 import datetime as dtm
 import logging
 import math
-import sched
 import time as systime
 
 import requests
 from sqlalchemy import and_
 
-from mensabot.bot.command import mensa
-from mensabot.bot.command.mensa import send_menu_message
-from mensabot.bot.ext import updater
-from mensabot.db import CHATS, connection
-from mensabot.mensa import clear_caches, get_menu_week, get_next_mensa_open
-
-# TODO use telegram task queue
-# https://github.com/python-telegram-bot/python-telegram-bot/wiki/Extensions-%E2%80%93-JobQueue
-SCHED = sched.scheduler(systime.time, systime.sleep)
-SCHED_INTERVAL = 1
-SCHED_TASK_COUNT = 4
+from stwno_bot.ext import updater
 
 logger = logging.getLogger("mensabot.sched")
 
@@ -92,7 +81,7 @@ def schedule_update_menu():
     logger.debug("Fetching new menu")
     SCHED.enter(5 * 60, 11, schedule_update_menu)
     try:
-        get_menu_week(dtm.date.today().isocalendar()[1], disable_cache=True)
+        get_menu_of_week(dtm.date.today().isocalendar()[1], disable_cache=True)
     except requests.exceptions.RequestException:
         logger.warning("Could not fetch new menu, trying again later", exc_info=True)
 

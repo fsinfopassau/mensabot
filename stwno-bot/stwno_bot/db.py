@@ -3,7 +3,7 @@ from contextlib import ExitStack, closing, contextmanager
 
 from sqlalchemy import *
 
-from mensabot.config_default import ECHO_SQL
+from stwno_bot.config import ECHO_SQL
 
 logger = logging.getLogger("mensabot.db")
 
@@ -31,6 +31,28 @@ def connection():
         conn = s.enter_context(closing(SQL_ENGINE.connect()))
         execute = lambda *args, **kwargs: s.enter_context(closing(conn.execute(*args, **kwargs)))
         yield conn, execute
+
+
+@contextmanager
+def chat_record(id):
+    if isinstance(id, Message):
+        id = id.chat.id
+    elif isinstance(id, Update):
+        id = id.message.chat.id
+    elif not isinstance(id, int):
+        raise ValueError("ID '%s' is not an int." % id)
+    with connection() as (conn, execute):
+        res = execute(
+            CHATS.select().where(CHATS.c.id == id)
+        ).fetchone()
+        if not res:
+            execute(
+                CHATS.insert().values(id=id)
+            )
+            res = execute(
+                CHATS.select().where(CHATS.c.id == id)
+            ).fetchone()
+        yield res
 
 
 with connection() as (conn, execute):

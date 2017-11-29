@@ -1,11 +1,10 @@
 import importlib
 
-from telegram import ParseMode
-from telegram.ext import Filters, MessageHandler
-
 from mensabot.bot.ext import dispatcher
 from mensabot.bot.util import ComHandlerFunc, get_args
 from mensabot.format import get_abbr
+from telegram import ParseMode
+from telegram.ext import Filters, MessageHandler
 
 __all__ = ["cafete", "config", "mensa", "debug"]
 

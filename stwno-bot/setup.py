@@ -10,9 +10,11 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
+version = '0.5.0'
+
 setup(
     name='mensabot',
-    version='0.3.2',
+    version=version,
     description='telegram bot for uni passau mensa',
     long_description=long_description,
     url='https://github.com/N-Coder/mensabot',
@@ -27,7 +29,6 @@ setup(
         "console_scripts": [
             "mensabot = mensabot.bot.main:main",
             "mensabot-bc = mensabot.bot.broadcast:main",
-            "mensa-diff = mensabot.mensa_menu:main"
         ]
     },
     packages=find_packages(),
@@ -35,16 +36,10 @@ setup(
         'mensabot': ['templates/*', 'templates/*/*', 'templates/*/*/*', 'languages/*'],
     },
     install_requires=[
-        'dateparser',
-        'requests',
-        'beautifulsoup4',
-        'jinja2',
-        'regex',
-        'babel',
+        'stwno-bot==%s' % version,
         'python-telegram-bot',
         'sqlalchemy',
         'sh',
-        'pyyaml',
         'flask',
         'healthcheck'
     ]

@@ -1,6 +1,6 @@
 import datetime as dtm
 
-from mensabot.bot.util import ComHandlerFunc, get_args, chat_record
+from mensabot.bot.util import ComHandlerFunc, chat_record, get_args
 from mensabot.db import CHATS, connection
 from mensabot.format import check_legal_template
 from mensabot.mensa import PRICES_CATEGORIES

@@ -1,11 +1,10 @@
 import datetime as dtm
 
-from telegram import ParseMode
-
 from mensabot.bot.util import ComHandlerFunc, chat_record, get_args
 from mensabot.format import get_open_formatted
 from mensabot.mensa import LOCATIONS
 from mensabot.parse import parse_loc_date
+from telegram import ParseMode
 
 
 @ComHandlerFunc("cafete")
