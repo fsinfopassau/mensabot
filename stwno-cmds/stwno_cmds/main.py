@@ -15,13 +15,13 @@ from stwno_cmds.format import get_menu_diff_formatted, get_menu_formatted, get_o
 from stwno_cmds.parse import LANG, parse_location, parse_location_date
 
 
-def _parse_args(parser):
+def _parse_args(parser, args):
     parser.add_argument('--institution', '-i', action='store', default=Passau.name, nargs='?')
     parser.add_argument('--location', '-l', action='store', default=Passau.default_mensa.name, nargs='?')
     parser.add_argument('--locale', '-s', action='store', default=LANG[0], nargs='?')
     parser.add_argument('--template', '-t', action='store', default=LANG[0], nargs='?')
     parser.add_argument('--price_category', '-c', action='store', default=StwnoApi.PRICES_CATEGORIES[0], nargs='?')
-    args = parser.parse_args().__dict__
+    args = parser.parse_args(args).__dict__
 
     institution = args.pop("institution")
     if institution == Passau.name:
@@ -38,10 +38,10 @@ def _parse_args(parser):
     return institution, args
 
 
-def mensa():
+def mensa(args=None):
     parser = argparse.ArgumentParser(description='Get the mensa menu.')
     parser.add_argument('day/location', action='store', default=None, nargs='*')
-    institution, args = _parse_args(parser)
+    institution, args = _parse_args(parser, args)
     args["location"], args["day"] = parse_location_date(institution, args["day/location"])
     with requests.Session() as session:
         api = CachedStwnoApi(institution)
@@ -49,10 +49,10 @@ def mensa():
         print(get_menu_formatted(api, **args))
 
 
-def cafete():
+def cafete(args=None):
     parser = argparse.ArgumentParser(description='Get the cafeteria opening times.')
     parser.add_argument('date/location', action='store', default=None, nargs='*')
-    institution, args = _parse_args(parser)
+    institution, args = _parse_args(parser, args)
     args["location"], args["dt"] = parse_location_date(institution, args["date/location"])
     with requests.Session() as session:
         api = CachedStwnoApi(institution)
@@ -60,7 +60,7 @@ def cafete():
         print(get_opening_times_formatted(api, **args))
 
 
-def diff():
+def diff(args=None):
     parser = argparse.ArgumentParser(description='Compare two mensa menus.')
     parser.add_argument('path', action='store', default="", nargs='?')
     parser.add_argument('old_file', action='store')
@@ -69,7 +69,7 @@ def diff():
     parser.add_argument('new_file', action='store')
     parser.add_argument('new_hex', action='store', default="", nargs='?')
     parser.add_argument('new_mode', action='store', default="", nargs='?')
-    args = parser.parse_args()
+    args = parser.parse_args(args)
 
     with open(args.old_file, "r", encoding="iso8859_3") as f:
         menu1 = [parse_dish(row) for row in csv.DictReader(f.readlines(), delimiter=';')]

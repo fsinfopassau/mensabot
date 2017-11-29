@@ -1,0 +1,66 @@
+datum;tag;warengruppe;name;kennz;preis;stud;bed;gast
+06.11.2017;Mo;Suppe;B�rlauchcremesuppe (3                                     ,A      ,G      ,I);V;0,60 / 0 ,80 / 1,30;0  ,60;0   ,80;1  ,30
+06.11.2017;Mo;HG1;Ente s��-sauer mit Basmatireis (3                           ,16     ,A      ,F     ,L);G;0 ,00 / 0,00 / 0,00;0   ,00;0  ,00;0  ,00
+06.11.2017;Mo;HG2;Spaghetti mit K�rbis Soja Bolognese (A                      ,F);VG  ,MV;1   ,90 / 2,70 / 3 ,50;1  ,90;2  ,70;3   ,50
+06.11.2017;Mo;HG3;Tortellini Provence (3                                      ,A      ,C      ,G     ,I);V;2 ,40 / 3,00 / 4,10;2   ,40;3  ,00;4  ,10
+06.11.2017;Mo;HG4;Pikantes Paprikaschnitzel (2                                ,3      ,9      ,16    ,I      ,J);S;3,00 / 3,80 / 4 ,50;3  ,00;3  ,80;4  ,50
+06.11.2017;Mo;B1;Basmatireis (3                                               ,I);VG;0,60 / 0 ,80 / 1,30;0   ,60;0  ,80;1  ,30
+06.11.2017;Mo;B2;Pariser Karotten (3                                          ,I);VG;0,60 / 0 ,80 / 1,30;0   ,60;0  ,80;1  ,30
+06.11.2017;Mo;B3;Mischsalat;V;0                                               ,90 / 1 ,10 / 1 ,60;0  ,90;1   ,10;1  ,60
+06.11.2017;Mo;B4;Radischensalat;VG;0                                          ,90 / 1 ,10 / 1 ,60;0  ,90;1   ,10;1  ,60
+06.11.2017;Mo;B5;Gurkensalat (16);VG;0                                        ,90 / 1 ,10 / 1 ,60;0  ,90;1   ,10;1  ,60
+06.11.2017;Mo;B6;Salat Buffet (3                                              ,6      ,16     ,G     ,L);;3  ,00 / 3,50 / 4,20;3   ,00;3  ,50;4  ,20
+06.11.2017;Mo;N1;Himbeerjoghurt (G);V;0                                       ,70 / 0 ,90 / 1 ,30;0  ,70;0   ,90;1  ,30
+06.11.2017;Mo;N2;Vanille Erdbeer Trifle (8                                    ,A      ,C      ,G);V;0,80 / 1 ,00 / 1,40;0  ,80;1   ,00;1  ,40
+06.11.2017;Mo;N3;D�nisches Zitronen Fromage (3                                ,F      ,G);V;1 ,00 / 1,30 / 1 ,50;1  ,00;1  ,30;1   ,50
+07.11.2017;Di;Suppe;Thaisuppe (3                                              ,L);G;0 ,60 / 0 ,80 / 1,30;0   ,60;0  ,80;1  ,30
+07.11.2017;Di;HG1;BBQ Burger mit Pommes Frites (1                             ,2      ,3      ,9     ,A      ,C     ,G     ,I      ,J);R  ,S;0   ,00 / 0,00 / 0,00;0,00;0,00;0,00
+07.11.2017;Di;HG2;Spanische Tortilla mit Paprikadip (3                        ,16     ,C      ,I);V;2,20 / 2 ,90 / 3,90;2  ,20;2   ,90;3  ,90
+07.11.2017;Di;HG3;Bohnen- Bulgur- Ragout mit Champignons und Paprika (3       ,8      ,A      ,F     ,H      ,I);VG ,MV;2  ,70 / 3 ,30 / 4,30;2  ,70;3  ,30;4  ,30
+07.11.2017;Di;HG4;Piccata alla Milanese mit Spaghetti (3                      ,A      ,G      ,I);G;3,00 / 3 ,80 / 4,50;3  ,00;3   ,80;4  ,50
+07.11.2017;Di;B1;Karottensalat mit Sonnenblumenkernen (16);VG;0               ,90 / 1 ,10 / 1 ,60;0  ,90;1   ,10;1  ,60
+07.11.2017;Di;B2;Gem�secocktail Cordial (3                                    ,I);VG;0,90 / 1 ,10 / 1,60;0   ,90;1  ,10;1  ,60
+07.11.2017;Di;B3;Sellerierohkost (G                                           ,H      ,I);V;0 ,90 / 1,10 / 1 ,60;0  ,90;1  ,10;1   ,60
+07.11.2017;Di;B4;Salatmix III;VG;0                                            ,90 / 1 ,10 / 1 ,60;0  ,90;1   ,10;1  ,60
+07.11.2017;Di;B5;Salat Buffet (3                                              ,6      ,16     ,G     ,L);;3  ,00 / 3,50 / 4,20;3   ,00;3  ,50;4  ,20
+07.11.2017;Di;N1;Bananenjoghurt (G);V;0                                       ,70 / 0 ,90 / 1 ,30;0  ,70;0   ,90;1  ,30
+07.11.2017;Di;N2;Panna Cotta mit Fruchtspiegel (3                             ,F      ,G);S;1 ,00 / 1,30 / 1 ,50;1  ,00;1  ,30;1   ,50
+07.11.2017;Di;N3;Chocolat de Coco (F                                          ,G);V;1 ,00 / 1 ,30 / 1,50;1   ,00;1  ,30;1  ,50
+08.11.2017;Mi;Suppe;Paprika - Ricotta - Suppe (3                              ,A      ,G      ,I);V;0,60 / 0 ,80 / 1,30;0  ,60;0   ,80;1  ,30
+08.11.2017;Mi;HG1;Lachsforellenfilet mit Gew�rzkruste und Zitronenkartoffel (3,G);F;0 ,00 / 0 ,00 / 0,00;0   ,00;0  ,00;0  ,00
+08.11.2017;Mi;HG2;Gem�sefrikadellen mit Kr�utersahne (3                       ,A      ,G      ,I);V;1,90 / 2 ,70 / 3,50;1  ,90;2   ,70;3  ,50
+08.11.2017;Mi;HG3;Schupfnudel-Pfanne mit H�hnchenbrust (3                     ,A      ,C      ,I     ,AA);G;2,20 / 2,90 / 3,90;2   ,20;2  ,90;3  ,90
+08.11.2017;Mi;HG4;Kasselerbraten mit Kn�del (2                                ,3      ,5      ,A     ,G      ,I     ,L     ,AA);S;3,00 / 3,80 / 4,50;3  ,00;3  ,80;4,50
+08.11.2017;Mi;B1;Buttergem�se bayrisch (3                                     ,G      ,I);V;0 ,70 / 0,90 / 1 ,40;0  ,70;0  ,90;1   ,40
+08.11.2017;Mi;B2;Blumenkohlsalat (16);VG;0                                    ,90 / 1 ,10 / 1 ,60;0  ,90;1   ,10;1  ,60
+08.11.2017;Mi;B3;Salatmix II;VG;0                                             ,90 / 1 ,10 / 1 ,60;0  ,90;1   ,10;1  ,60
+08.11.2017;Mi;B4;Rote R�bensalat (9);VG;0                                     ,90 / 1 ,10 / 1 ,60;0  ,90;1   ,10;1  ,60
+08.11.2017;Mi;B5;Salat Buffet (3                                              ,6      ,16     ,G     ,L);;3  ,00 / 3,50 / 4,20;3   ,00;3  ,50;4  ,20
+08.11.2017;Mi;N1;Pudding Siciliana (1                                         ,G      ,H);V;0 ,70 / 0,90 / 1 ,30;0  ,70;0  ,90;1   ,30
+08.11.2017;Mi;N2;Mango Joghurt (G);V;0                                        ,70 / 0 ,90 / 1 ,30;0  ,70;0   ,90;1  ,30
+08.11.2017;Mi;N3;Erdbeer und Rote Johannisbeer Mousse (G);V;1                 ,00 / 1 ,30 / 1 ,50;1  ,00;1   ,30;1  ,50
+09.11.2017;Do;Suppe;Speckkl�sschensuppe (A                                    ,C      ,G);S   ,R;0   ,60 / 0 ,80 / 1,30;0  ,60;0   ,80;1  ,30
+09.11.2017;Do;HG1;Kartoffel Cordon Bleu mit Gem�se (3                         ,A      ,G      ,I);V;1,90 / 2 ,70 / 3,50;1  ,90;2   ,70;3  ,50
+09.11.2017;Do;HG2;Veganer Lahmacun (1                                         ,8      ,A      ,F     ,L);VG;2,70 / 3,30 / 4,30;2   ,70;3  ,30;4  ,30
+09.11.2017;Do;HG3;Rahmgeschnetzeltes Z�richer Art mit R�sti (3                ,16     ,G);S   ,A;3   ,00 / 3 ,80 / 4,50;3  ,00;3   ,80;4  ,50
+09.11.2017;Do;HG4;Lasagne Bolognese (3                                        ,A      ,F      ,G     ,I);R;3 ,00 / 3,80 / 4,50;3   ,00;3  ,80;4  ,50
+09.11.2017;Do;B1;Ratatouille (3                                               ,I);VG;0,60 / 0 ,80 / 1,30;0   ,60;0  ,80;1  ,30
+09.11.2017;Do;B2;Tomatensalat (16);VG;0                                       ,90 / 1 ,10 / 1 ,60;0  ,90;1   ,10;1  ,60
+09.11.2017;Do;B3;Salatmix I;VG;0                                              ,90 / 1 ,10 / 1 ,60;0  ,90;1   ,10;1  ,60
+09.11.2017;Do;B4;Fenchel-Bananenrohkost (G);V;0                               ,90 / 1 ,10 / 1 ,60;0  ,90;1   ,10;1  ,60
+09.11.2017;Do;B5;Salat Buffet (3                                              ,6      ,16     ,G     ,L);;3  ,00 / 3,50 / 4,20;3   ,00;3  ,50;4  ,20
+09.11.2017;Do;N1;Preiselbeerquark (3                                          ,G);V;0 ,70 / 0 ,90 / 1,30;0   ,70;0  ,90;1  ,30
+09.11.2017;Do;N2;Pudding mit Vanillegeschmack (G);V;0                         ,70 / 0 ,90 / 1 ,30;0  ,70;0   ,90;1  ,30
+09.11.2017;Do;N3;Joghurt- Erdbeermouse (G);;1                                 ,00 / 1 ,30 / 1 ,50;1  ,00;1   ,30;1  ,50
+10.11.2017;Fr;Suppe;Erdnuss - Suppe (3                                        ,E      ,I);VG;0,60 / 0,80 / 1 ,30;0  ,60;0  ,80;1   ,30
+10.11.2017;Fr;HG1;Mediterraner Gem�segulasch mit Tofu mit Zartweizen          ,VG (3  ,A      ,F     ,I);MV;0,00 / 0,00 / 0,00;0   ,00;0  ,00;0  ,00
+10.11.2017;Fr;HG2;Kaiserschmarrn mit Apfelmus (3                              ,A      ,C      ,G     ,H);V;1 ,90 / 2,70 / 3,50;1   ,90;2  ,70;3  ,50
+10.11.2017;Fr;HG3;Tiroler Gr�stl mit Salat (1                                 ,2      ,3      ,4     ,8);S   ,R;2   ,40 / 3,00 / 4 ,10;2  ,40;3  ,00;4  ,10
+10.11.2017;Fr;HG4;Seelachs M�llerin mit Kartoffel- Gurkensalat (9             ,C      ,D      ,G     ,J);F;3 ,00 / 3,80 / 4,50;3   ,00;3  ,80;4  ,50
+10.11.2017;Fr;B1;Salatmix III;VG;0                                            ,90 / 1 ,10 / 1 ,60;0  ,90;1   ,10;1  ,60
+10.11.2017;Fr;B2;Krautsalat bunt (16);VG;0                                    ,90 / 1 ,10 / 1 ,60;0  ,90;1   ,10;1  ,60
+10.11.2017;Fr;B3;Erbsen-Paprikasalat (16);VG;0                                ,90 / 1 ,10 / 1 ,60;0  ,90;1   ,10;1  ,60
+10.11.2017;Fr;B4;Gem�semix Flandern (3                                        ,I);VG;0,90 / 1 ,10 / 1,60;0   ,90;1  ,10;1  ,60
+10.11.2017;Fr;B5;Salat Buffet (3                                              ,6      ,16     ,G     ,L);;3  ,00 / 3,50 / 4,20;3   ,00;3  ,50;4  ,20
+10.11.2017;Fr;N1;Ananasquark (3                                               ,G);V;0 ,70 / 0 ,90 / 1,30;0   ,70;0  ,90;1  ,30
+10.11.2017;Fr;N2;Schoko-Banane (G);V;0                                        ,70 / 0 ,90 / 1 ,30;0  ,70;0   ,90;1  ,30

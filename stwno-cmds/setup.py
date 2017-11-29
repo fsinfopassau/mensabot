@@ -32,11 +32,11 @@ setup(
             "mensa-diff = stwno_cmds.main:diff"
         ]
     },
-    packages=["data", "stwno_cmds"],
+    packages=["stwno_cmds"],
     package_dir={"data": "stwno_cmds/translations/dateparser", "stwno_cmds": "stwno_cmds"},
     package_data={
         'stwno_cmds': ['templates/*', 'templates/*/*', 'templates/*/*/*', 'translations/*',
-                       'translations/dateparser*'],
+                       'translations/*/*'],
         'data': ['*.yaml']
     },
     install_requires=[
@@ -45,5 +45,10 @@ setup(
         'jinja2',
         'babel',
         'pyyaml',
+    ],
+    tests_require=[
+        'freezegun',
+        'requests-mock',
+        'more_itertools'
     ]
 )
