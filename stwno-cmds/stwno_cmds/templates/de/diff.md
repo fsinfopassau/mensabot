@@ -29,6 +29,6 @@
 {% endset -%}
 
 {%- if list %}
-Speisekarte für Mittagsmensa {{ utils.date(date, now, locale) }} wurde geändert:
+    Speisekarte für Mittagsmensa {{ utils.date(day, now, locale) }} wurde geändert:
 {{ list }}
 {% endif %}

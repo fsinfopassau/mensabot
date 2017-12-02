@@ -1,16 +1,17 @@
-import argparse
-import csv
-import itertools
 import logging
-
-import requests
 
 logging.basicConfig(level=logging.ERROR)
 logging.captureWarnings(True)
 
+import argparse
+import csv
+import itertools
+
+import requests
+
 from stwno_api.api import CachedStwnoApi, StwnoApi
 from stwno_api.institutions import Passau
-from stwno_api.menu_parser import generate_diff, parse_dish
+from stwno_api.menu_parser import generate_diff_week, parse_dish
 from stwno_cmds.format import get_menu_diff_formatted, get_menu_formatted, get_opening_times_formatted
 from stwno_cmds.parse import LANG, parse_location, parse_location_date
 
@@ -76,11 +77,11 @@ def diff(args=None):
     with open(args.new_file, "r", encoding="iso8859_3") as f:
         menu2 = [parse_dish(row) for row in csv.DictReader(f.readlines(), delimiter=';')]
 
-    diff = generate_diff(menu1, menu2)
-    diff = itertools.groupby(
-        sorted(diff, key=lambda d: (StwnoApi.MENU_TYPES.index(d.dish().warengruppe[0]),
-                                    d.dish().warengruppe)),
-        key=lambda d: d.dish().datum
-    )
+    diff = generate_diff_week(menu1, menu2)
+    diff = itertools.groupby(diff, key=lambda d: d.dish().datum)
     for day, day_diff in diff:
+        day_diff = sorted(
+            day_diff,
+            key=lambda d: (StwnoApi.MENU_TYPES.index(d.dish().warengruppe[0]),
+                           d.dish().warengruppe))
         print(get_menu_diff_formatted(day_diff, day))

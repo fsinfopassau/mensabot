@@ -29,6 +29,7 @@ setup(
     install_requires=[
         'requests',
         'beautifulsoup4',
-        'cached_property'
+        'cached_property',
+        'fuzzywuzzy'
     ]
 )

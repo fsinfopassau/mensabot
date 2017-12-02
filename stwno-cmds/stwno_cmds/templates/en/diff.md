@@ -29,6 +29,6 @@
 {% endset -%}
 
 {%- if list %}
-Menu for lunch mensa {{ utils.date(date, now, locale) }} changed:
+    Menu for lunch mensa {{ utils.date(day, now, locale) }} changed:
 {{ list }}
 {% endif %}
