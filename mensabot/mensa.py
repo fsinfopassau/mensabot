@@ -206,7 +206,7 @@ def get_next_mensa_open(dt: dtm.datetime = None, loc: str = "mensen/mensa-uni-pa
     return open_info(open, close, day, offset), menu
 
 
-DATES_URL = "http://www.uni-passau.de/studium/waehrend-des-studiums/semesterterminplan/vorlesungszeiten/"
+DATES_URL = "http://www.uni-passau.de/studium/waehrend-des-studiums/termine-und-fristen/vorlesungszeiten/"
 semester = NamedTuple("semester", [("name", str), ("is_winter", bool), ("start", dtm.date), ("end", dtm.date),
                                    ("holidays", List[Tuple[dtm.date, dtm.date]])])
 
