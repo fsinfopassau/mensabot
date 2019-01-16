@@ -2,8 +2,7 @@ import datetime as dtm
 import logging
 
 from telegram import Bot, Message
-from telegram.error import *
-from telegram.error import InvalidToken, RetryAfter, Unauthorized
+from telegram.error import InvalidToken, RetryAfter, TimedOut, Unauthorized
 from telegram.ext import Updater
 from telegram.utils.request import Request
 
@@ -19,8 +18,13 @@ class MensaBot(Bot):
         self.last_update = dtm.datetime.fromtimestamp(0)
 
     def get_updates(self, *args, **kwargs):
-        updates = super().get_updates(*args, **kwargs)
-        self.last_update = dtm.datetime.now()
+        try:
+            updates = super().get_updates(*args, **kwargs)
+            self.last_update = dtm.datetime.now()
+        except TimedOut:
+            self.last_update = dtm.datetime.now()
+            raise
+
         for update in updates:
             access_logger.info("Received update: %s" % update.to_json())
         return updates
