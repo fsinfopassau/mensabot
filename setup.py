@@ -35,17 +35,16 @@ setup(
         'mensabot': ['templates/*', 'templates/*/*', 'templates/*/*/*', 'languages/*'],
     },
     install_requires=[
-        'dateparser',
-        'requests',
-        'beautifulsoup4',
-        'jinja2',
-        'regex',
         'babel',
-        'python-telegram-bot',
-        'sqlalchemy',
-        'sh',
-        'pyyaml',
+        'beautifulsoup4',
+        'dateparser',
         'flask',
-        'healthcheck'
+        'healthcheck',
+        'jinja2',
+        'python-telegram-bot',
+        'pyyaml',
+        'requests',
+        'sh',
+        'sqlalchemy',
     ]
 )
