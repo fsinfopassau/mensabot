@@ -248,8 +248,12 @@ def get_semester_dates() -> List[semester]:
             dates = [dtm.datetime.strptime(d, "%d.%m.%Y").date() for d in dates]
         except ValueError:
             continue
-        start, end, bruecke = dates
-        holidays = [(bruecke, bruecke)]
+        if len(dates) >= 3:
+            start, end, bruecke = dates
+            holidays = [(bruecke, bruecke)]
+        else:
+            start, end = dates
+            holidays = []
         winter_sem = name.startswith("Winter")
         assert winter_sem == (start.year != end.year)
 
