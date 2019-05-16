@@ -2,7 +2,7 @@ import datetime as dtm
 import logging
 
 from telegram import Bot, Message
-from telegram.error import InvalidToken, RetryAfter, TimedOut, Unauthorized
+from telegram.error import *
 from telegram.ext import Updater
 from telegram.utils.request import Request
 

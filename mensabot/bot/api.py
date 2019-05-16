@@ -63,7 +63,14 @@ envdump.add_section("version", json_version)
 def tasks_running():
     from mensabot.bot.tasks import SCHED, SCHED_TASK_COUNT, task_name
     tasks = len(SCHED.queue)
-    return tasks >= SCHED_TASK_COUNT, {"count": tasks, "tasks": [task_name(task) for task in SCHED.queue]}
+    task_names = [task_name(task) for task in SCHED.queue]
+    dedup_count = len(set(task_names))
+    return SCHED_TASK_COUNT <= tasks == dedup_count, \
+           {
+               "count": tasks,
+               "dedup_count": dedup_count,
+               "tasks": task_names
+           }
 
 
 @health.add_check
