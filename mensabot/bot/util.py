@@ -43,7 +43,7 @@ def ensure_date(dt):
 
 
 def get_args(update):
-    text = update.message.text
+    text = update.message.text  # FIXME message might be None
     for ent in update.message.entities:
         if ent.type == MessageEntity.BOT_COMMAND:
             text = text[:ent.offset] + text[ent.offset + ent.length:]
@@ -66,6 +66,7 @@ def ComHandlerFunc(command, **kwargs):
                         chat_id=update.message.chat_id, text="I got network problems, please try again later! 😢",
                         parse_mode=ParseMode.MARKDOWN)
                 else:
+                    # FIXME message might be None
                     bot.sendMessage(
                         chat_id=update.message.chat_id, text="Master, I failed! 😢", parse_mode=ParseMode.MARKDOWN)
                 raise

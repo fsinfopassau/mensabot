@@ -4,7 +4,7 @@ from telegram import ParseMode
 from telegram.error import BadRequest
 
 from mensabot.bot.ext import updater
-from mensabot.bot.util import ComHandlerFunc, chat_record, get_args, ensure_date
+from mensabot.bot.util import ComHandlerFunc, chat_record, ensure_date, get_args
 from mensabot.format import get_mensa_diff_formatted, get_mensa_formatted
 from mensabot.mensa import PRICES_CATEGORIES, get_next_mensa_open
 from mensabot.parse import parse_loc_date
@@ -67,7 +67,7 @@ def edit_menu_message(dt, msg, menu, chat):
                 message_id=msg.message_id, chat_id=msg.chat_id,
                 text=text, parse_mode=ParseMode.MARKDOWN)
         except BadRequest as e:
-            if e.message == "Message is not modified":
+            if str(e.message).startswith("Message is not modified"):
                 pass
             else:
                 raise

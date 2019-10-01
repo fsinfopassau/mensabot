@@ -235,7 +235,7 @@ def get_semester_dates() -> List[semester]:
     r = requests.get(DATES_URL)
     r.raise_for_status()
     soup = BeautifulSoup(r.text, 'html.parser')
-    table = soup.find(id="up-content").next_sibling.find("table")
+    table = soup.find("main").find("table", class_="contenttable")
     assert list(table.find("thead").strings) == ['Semester', 'Beginn', 'Ende',
                                                  'Verfügungstag der Universität Passau (vorlesungsfrei)']
     assert table.next_sibling.string == \
