@@ -1,6 +1,7 @@
 import logging
 import logging.config
 import os
+import sys
 
 import yaml
 
@@ -20,7 +21,9 @@ def configure_logging():
         logging.config.dictConfig(yaml.load(f))
 
 
-from .config import *
+sys.path.append('.')
+from config import *
+del sys.path[-1]
 
 IS_DEVELOPMENT = DEPLOY_MODE == "DEVELOPMENT"
 TELEGRAM_TOKEN = TOKENS[DEPLOY_MODE]
