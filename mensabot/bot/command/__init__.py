@@ -49,9 +49,7 @@ def status(update, ctx):
 
     ctx.bot.sendMessage(chat_id=update.message.chat_id, text= \
         ("Everything is fine! 😊\n" if health.check(request=False)[1] == health.success_status else
-         "Uhoh. There seem to be some problems! 😕\n") +
-        "You can also check my uptime status online:\n"
-        "http://status.mensabot.niko.voidptr.de")
+         "Uhoh. There seem to be some problems! 😕\n"))
 
 
 @ComHandlerFunc("abbr")
