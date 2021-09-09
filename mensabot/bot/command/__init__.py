@@ -16,23 +16,23 @@ def init_commands():
     for mod in __all__:
         importlib.import_module("." + mod, __name__)
 
-    def unknown(bot, update):
-        bot.send_message(chat_id=update.message.chat_id, text="Sorry, I didn't understand that command.")
+    def unknown(update, ctx):
+        ctx.bot.send_message(chat_id=update.message.chat_id, text="Sorry, I didn't understand that command.")
 
     unknown_handler = MessageHandler(Filters.command, unknown)
     dispatcher.add_handler(unknown_handler)
 
 
 @ComHandlerFunc("start")
-def start(bot, update):
-    bot.sendMessage(chat_id=update.message.chat_id, text= \
+def start(update, ctx):
+    ctx.bot.sendMessage(chat_id=update.message.chat_id, text= \
         "MensaBot Passau to your service. "
         "Try /mensa or /cafete and add a time or location if you want.")
 
 
 @ComHandlerFunc("help")
-def help(bot, update):
-    bot.sendMessage(chat_id=update.message.chat_id, text= \
+def help(update, ctx):
+    ctx.bot.sendMessage(chat_id=update.message.chat_id, text= \
         "MensaBot Passau to your service. "
         "Try /mensa or /cafete and add a time or location if you want. "
         "Examples:\n"
@@ -44,10 +44,10 @@ def help(bot, update):
 
 
 @ComHandlerFunc("status")
-def status(bot, update):
+def status(update, ctx):
     from mensabot.bot.api import health
 
-    bot.sendMessage(chat_id=update.message.chat_id, text= \
+    ctx.bot.sendMessage(chat_id=update.message.chat_id, text= \
         ("Everything is fine! 😊\n" if health.check(request=False)[1] == health.success_status else
          "Uhoh. There seem to be some problems! 😕\n") +
         "You can also check my uptime status online:\n"
@@ -55,14 +55,14 @@ def status(bot, update):
 
 
 @ComHandlerFunc("abbr")
-def abbr(bot, update):
+def abbr(update, ctx):
     args = get_args(update)
     abbrs = get_abbr()
     if not args or not args[0]:
-        bot.sendMessage(chat_id=update.message.chat_id, text=abbrs, parse_mode=ParseMode.MARKDOWN)
+        ctx.bot.sendMessage(chat_id=update.message.chat_id, text=abbrs, parse_mode=ParseMode.MARKDOWN)
         return
     found = [abbr for abbr in abbrs.split("\n") if abbr.startswith("`" + args[0])]
     if not found:
-        bot.sendMessage(chat_id=update.message.chat_id, text="Abbreviation '{}' not found.".format(args[0]))
+        ctx.bot.sendMessage(chat_id=update.message.chat_id, text="Abbreviation '{}' not found.".format(args[0]))
     else:
-        bot.sendMessage(chat_id=update.message.chat_id, text="\n".join(found), parse_mode=ParseMode.MARKDOWN)
+        ctx.bot.sendMessage(chat_id=update.message.chat_id, text="\n".join(found), parse_mode=ParseMode.MARKDOWN)

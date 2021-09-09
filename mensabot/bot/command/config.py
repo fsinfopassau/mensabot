@@ -64,11 +64,11 @@ CONFIG_OPTIONS = {
 
 
 @ComHandlerFunc("set")
-def set_config(bot, update):
+def set_config(update, ctx):
     id = update.message.chat.id
     args = get_args(update)
     if len(args) != 2:
-        bot.sendMessage(chat_id=update.message.chat_id,
+        ctx.bot.sendMessage(chat_id=update.message.chat_id,
                         text="Could not parse args '%s'. Enter a config option and a new value." % " ".join(args))
         return
     fun, arg = args
@@ -79,12 +79,12 @@ def set_config(bot, update):
         else:
             arg = CONFIG_OPTIONS[fun](arg)
     except KeyError:
-        bot.sendMessage(chat_id=update.message.chat_id, text="'{}' is not a valid config option. Try {}.".format(
+        ctx.bot.sendMessage(chat_id=update.message.chat_id, text="'{}' is not a valid config option. Try {}.".format(
             fun, ", ".join(CONFIG_OPTIONS.keys())
         ))
         return
     except ValueError as e:
-        bot.sendMessage(chat_id=update.message.chat_id, text=str(e))
+        ctx.bot.sendMessage(chat_id=update.message.chat_id, text=str(e))
         return
 
     with connection() as (conn, execute):
@@ -96,28 +96,28 @@ def set_config(bot, update):
             execute(
                 CHATS.insert().values(id=id, **val)
             )
-    bot.sendMessage(chat_id=update.message.chat_id, text="Updated %s to '%s'." % (fun, arg))
+    ctx.bot.sendMessage(chat_id=update.message.chat_id, text="Updated %s to '%s'." % (fun, arg))
 
 
 @ComHandlerFunc("get")
-def get_config(bot, update):
+def get_config(update, ctx):
     id = update.message.chat.id
     args = get_args(update)
     if len(args) > 1:
-        bot.sendMessage(chat_id=update.message.chat_id,
-                        text="Could not parse args '%s'. Enter the name of a config option." % " ".join(args))
+        ctx.bot.sendMessage(chat_id=update.message.chat_id,
+                            text="Could not parse args '%s'. Enter the name of a config option." % " ".join(args))
         return
 
     with chat_record(id) as res:
         if len(args) == 1 and args[0]:
             fun, = args
             if fun not in CONFIG_OPTIONS.keys():
-                bot.sendMessage(chat_id=update.message.chat_id,
-                                text="'{}' is not a valid config option. Try {}.".format(
-                                    fun, ", ".join(CONFIG_OPTIONS.keys())
-                                ))
+                ctx.bot.sendMessage(chat_id=update.message.chat_id,
+                                    text="'{}' is not a valid config option. Try {}.".format(
+                                        fun, ", ".join(CONFIG_OPTIONS.keys())
+                                    ))
             else:
-                bot.sendMessage(chat_id=update.message.chat_id, text="%s: %s" % (fun, res[fun]))
+                ctx.bot.sendMessage(chat_id=update.message.chat_id, text="%s: %s" % (fun, res[fun]))
         else:
-            bot.sendMessage(chat_id=update.message.chat_id,
-                            text="\n".join("%s: %s" % (fun, res[fun]) for fun in CONFIG_OPTIONS.keys()))
+            ctx.bot.sendMessage(chat_id=update.message.chat_id,
+                                text="\n".join("%s: %s" % (fun, res[fun]) for fun in CONFIG_OPTIONS.keys()))

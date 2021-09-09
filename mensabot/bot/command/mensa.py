@@ -14,7 +14,7 @@ notifications_date = dtm.date.today()
 
 
 @ComHandlerFunc("mensa")
-def mensa(bot, update):
+def mensa(update, ctx):
     try:
         loc, dt = parse_loc_date(get_args(update))
         if not dt:
@@ -22,7 +22,7 @@ def mensa(bot, update):
         if loc:
             raise ValueError("Currently, only default location is supported")
     except ValueError as e:
-        bot.sendMessage(chat_id=update.message.chat_id,
+        ctx.bot.sendMessage(chat_id=update.message.chat_id,
                         text="%s. Try 'today', 'tomorrow', 'Friday' or a date." % e)
         return
 

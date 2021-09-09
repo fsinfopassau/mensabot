@@ -56,18 +56,18 @@ com_logger = logging.getLogger("mensabot.bot.command")
 def ComHandlerFunc(command, **kwargs):
     # TODO use pass_args param
     def func_decorator(func):
-        def func_wrapper(bot, update):
+        def func_wrapper(update, ctx):
             try:
-                func(bot, update)
+                func(update, ctx)
             except:
                 com_logger.error("Command /%s failed", command, exc_info=True)
                 if sys.exc_info()[0] in [requests.exceptions.ConnectionError, requests.exceptions.Timeout]:
-                    bot.sendMessage(
+                    ctx.bot.sendMessage(
                         chat_id=update.message.chat_id, text="I got network problems, please try again later! 😢",
                         parse_mode=ParseMode.MARKDOWN)
                 else:
                     # FIXME message might be None
-                    bot.sendMessage(
+                    ctx.bot.sendMessage(
                         chat_id=update.message.chat_id, text="Master, I failed! 😢", parse_mode=ParseMode.MARKDOWN)
                 raise
 
