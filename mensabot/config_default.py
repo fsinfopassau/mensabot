@@ -16,7 +16,7 @@ def configure_logging():
     # logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
     os.makedirs(LOG_PATH, exist_ok=True)
     with open(LOG_CONFIG, "r") as f:
-        logging.config.dictConfig(yaml.load(f))
+        logging.config.dictConfig(yaml.safe_load(f))
 
 # Defaults for the config
 ENABLE_WEBSERVER = False
