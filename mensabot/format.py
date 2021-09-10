@@ -10,7 +10,6 @@ from jinja2 import PackageLoader, TemplateNotFound
 from jinja2.sandbox import SandboxedEnvironment
 
 from mensabot.bot.util import ensure_date
-from mensabot.config_default import DEPLOY_MODE
 from mensabot.mensa import LOCATIONS, NOT_OPEN, dish, get_menu_day, get_next_open, get_opening_times, is_holiday
 from mensabot.parse import LANG
 
@@ -143,4 +142,4 @@ def get_version():
     except NotADirectoryError:
         git_rev = "release"
     # FIXME pkg_data.version is invalid when installed via "develop" and setup.py changes
-    return "{} {} {} [{}]".format(pkg_data.project_name.title(), pkg_data.version, git_rev, DEPLOY_MODE)
+    return "{} {} {}".format(pkg_data.project_name.title(), pkg_data.version, git_rev)

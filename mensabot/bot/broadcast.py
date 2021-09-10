@@ -5,15 +5,13 @@ from telegram import ParseMode
 
 from mensabot.bot.ext import updater
 from mensabot.bot.tasks import SCHED
+from mensabot.config_default import DATABASE
 
 
 # TODO use telegram-bot MessageQueue for rate limiting
 # https://github.com/python-telegram-bot/python-telegram-bot/wiki/Avoiding-spam-limits
 
 def main():
-    if not os.path.isfile("mensabot.sqlite"):
-        raise AssertionError(
-            "Could not find 'mensabot.sqlite'. Please change to the directory containing the database.")
     from mensabot.db import CHATS, connection
 
     parser = argparse.ArgumentParser(description='Broadcast a message to all mensabot users.')

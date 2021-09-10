@@ -3,7 +3,7 @@ from contextlib import ExitStack, closing, contextmanager
 
 from sqlalchemy import *
 
-from mensabot.config_default import ECHO_SQL
+from mensabot.config_default import ECHO_SQL, DATABASE
 
 logger = logging.getLogger("mensabot.db")
 
@@ -22,7 +22,7 @@ CHATS = Table(
     Column('update_menu', Boolean, server_default=text("1")),
 )
 
-SQL_ENGINE = create_engine('sqlite:///mensabot.sqlite', echo=ECHO_SQL)
+SQL_ENGINE = create_engine(DATABASE, echo=ECHO_SQL)
 
 
 @contextmanager
