@@ -62,6 +62,10 @@ def fetch_menu_week(week: int) -> List[dish]:
     # fix ; appearing in Zusatz, e.g. (2,3,8,G,I,A;AA)
     text = re.sub("\([A-Z0-9,; ]+\)", lambda m: m.group().replace(";", ","), text)
 
+    # Fix stray newlines. If a line does not start with a valid date, is it
+    # probably actually part of the previous line.
+    text = re.sub("\n(?![0-9]{2}\.[0-9]{2}\.[0-9]{4};)", " ", text)
+
     os.makedirs(MENU_STORE, exist_ok=True)
     with open("%s/%s.csv" % (MENU_STORE, week), "a+", encoding="iso8859_3") as f:
         f.seek(0)
