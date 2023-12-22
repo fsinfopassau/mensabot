@@ -218,7 +218,7 @@ def get_next_mensa_open(dt: dtm.datetime = None, loc: str = "mensen/mensa-uni-pa
     return open_info(open, close, day, offset), menu
 
 
-DATES_URL = "http://www.uni-passau.de/studium/waehrend-des-studiums/termine-und-fristen/vorlesungszeiten/"
+DATES_URL = "https://www.uni-passau.de/termine-fristen/vorlesungszeiten/"
 semester = NamedTuple("semester", [("name", str), ("is_winter", bool), ("start", dtm.date), ("end", dtm.date),
                                    ("holidays", List[Tuple[dtm.date, dtm.date]])])
 
@@ -248,12 +248,12 @@ def get_semester_dates() -> List[semester]:
     r.raise_for_status()
     soup = BeautifulSoup(r.text, 'html.parser')
     table = soup.find("main").find("table", class_="contenttable")
-    assert list(table.find("thead").strings) == ['Semester', 'Beginn', 'Ende',
+    assert [ x.replace('\xad', '') for x in list(table.find("thead").strings) ] == ['Semester', 'Beginn', 'Ende',
                                                  'Verfügungstag der Universität Passau (vorlesungsfrei)']
     assert table.next_sibling.string == "Vorlesungsfrei:"
 
     past_table = soup.find("main").find("div", class_="collapse").find("table", class_="contenttable")
-    assert list(past_table.find("thead").strings) == ['Semester', 'Beginn', 'Ende',
+    assert [ x.replace('\xad', '') for x in list(past_table.find("thead").strings) ] == ['Semester', 'Beginn', 'Ende',
                                                       'Verfügungstag der Universität Passau (vorlesungsfrei)']
     assert past_table.next_sibling.string == \
            "Die Vorlesungszeit wird unterbrochen vom 24. Dezember bis einschließlich 6. Januar, vom Gründonnerstag " \
