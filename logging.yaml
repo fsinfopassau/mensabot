@@ -1,6 +1,3 @@
-# TODO filter werkzeug / flask API messages
-# TODO check Access logging
-
 version: 1
 
 filters:
@@ -10,39 +7,8 @@ filters:
 formatters:
   simple:
     format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-  syslog:
-    format: 'mensabot-%(name)s: %(message)s'
 
 handlers:
-  debug:
-    class: logging.handlers.SysLogHandler
-    level: DEBUG
-    address: /dev/log
-    formatter: syslog
-
-#  debug:
-#    class: logging.handlers.RotatingFileHandler
-#    maxBytes: 104857600 # 1024 * 1024 * 100
-#    backupCount: 1
-#    level: DEBUG
-#    formatter: simple
-#    filename: log/debug.log
-
-  error:
-    class: logging.handlers.WatchedFileHandler
-    level: WARNING
-    formatter: simple
-    filename: log/error.log
-
-  access:
-    class: logging.handlers.TimedRotatingFileHandler
-    level: DEBUG
-    formatter: simple
-    filters: [ends_with_brace]
-    filename: log/access.log
-    when: midnight
-    backupCount: 7
-
   console:
     class: logging.StreamHandler
     formatter: simple
@@ -51,8 +17,7 @@ handlers:
 
 loggers:
   mensabot.access:
-    handlers: [access]
-    propagate: False
+    level: DEBUG
 
   telegram.bot:
     level: INFO
@@ -62,11 +27,10 @@ loggers:
 
   sh.command:
     level: INFO
-    handlers: [error, debug]
     propagate: False
 
 root:
   level: DEBUG
-  handlers: [error, debug, console]
+  handlers: [console]
 
 disable_existing_loggers: False
