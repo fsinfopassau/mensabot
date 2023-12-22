@@ -114,6 +114,14 @@ def get_opening_times(loc: str) -> Dict[Tuple[bool, int], Tuple[dtm.time, dtm.ti
     :return: a dict, mapping from the tuple (is during holidays, iso week day) to (opening time, closing time)
     """
 
+    # This is a hack to keep the /mensa command working even though the opening times cannot be determined reliably.
+    # TODO: Find a new reliable source for mensa opening times.
+    if loc == "mensen/mensa-uni-passau":
+      dates = {(t, d): NOT_OPEN for d in range(7) for t in [True, False]}
+      for d in range(5):
+        dates[(True, d)] = dates[(False, d)] = (dtm.time(11, 00), dtm.time(14, 15))
+      return dates
+
     r = requests.get(OPENING_URL + loc)
     r.raise_for_status()
     soup = BeautifulSoup(r.text, 'html.parser')
