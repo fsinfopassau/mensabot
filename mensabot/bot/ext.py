@@ -100,7 +100,7 @@ class MensaBot(Bot):
 logger = logging.getLogger("mensabot.ext")
 request = Request(con_pool_size=8)
 bot = MensaBot(token=TELEGRAM_TOKEN, request=request)
-updater = Updater(bot=bot)
+updater = Updater(bot=bot, use_context=True)
 dispatcher = updater.dispatcher
 
 # TODO add error handler
