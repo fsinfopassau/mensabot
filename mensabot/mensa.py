@@ -69,8 +69,8 @@ def fetch_menu_week(week: int) -> List[dish]:
     os.makedirs(MENU_STORE, exist_ok=True)
     with open("%s/%s.csv" % (MENU_STORE, week), "a+", encoding="iso8859_3") as f:
         f.seek(0)
-        old = [parse_dish(row) for row in csv.DictReader(f.readlines(), delimiter=';')]
-        new = [parse_dish(row) for row in csv.DictReader(text.splitlines(), delimiter=';')]
+        old = [parse_dish(row) for row in csv.DictReader(f.readlines(), delimiter=';') if row['datum'].strip()]
+        new = [parse_dish(row) for row in csv.DictReader(text.splitlines(), delimiter=';') if row['datum'].strip()]
 
         if old == new:
             return old
