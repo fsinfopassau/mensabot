@@ -235,6 +235,8 @@ def is_holiday(dt: dtm.datetime = None) -> bool:
                              % (dt, pformat(semester_dates))
     return current_semester.end < dt or any(start <= dt <= end for start, end in current_semester.holidays)
 
+def sanitize_semester_dates_table_heads(strings: List[str]) -> List[str]:
+    return [ x.replace('\xad', '').replace('\t', '').split(' ')[0] for x in strings ][0:4]
 
 @functools.lru_cache(maxsize=1)
 def get_semester_dates() -> List[semester]:
@@ -248,13 +250,13 @@ def get_semester_dates() -> List[semester]:
     r.raise_for_status()
     soup = BeautifulSoup(r.text, 'html.parser')
     table = soup.find("main").find("table", class_="contenttable")
-    assert [ x.replace('\xad', '') for x in list(table.find("thead").strings) ] == ['Semester', 'Beginn', 'Ende',
-                                                 'Verfügungstag der Universität Passau (vorlesungsfrei)']
+    assert sanitize_semester_dates_table_heads(list(table.find("thead").strings)) == ['Semester', 'Beginn', 'Ende',
+                                                 'Verfügungstag']
     assert table.next_sibling.string == "Vorlesungsfrei:"
 
     past_table = soup.find("main").find("div", class_="collapse").find("table", class_="contenttable")
-    assert [ x.replace('\xad', '') for x in list(past_table.find("thead").strings) ] == ['Semester', 'Beginn', 'Ende',
-                                                      'Verfügungstag der Universität Passau (vorlesungsfrei)']
+    assert sanitize_semester_dates_table_heads(list(past_table.find("thead").strings)) == ['Semester', 'Beginn', 'Ende',
+                                                      'Verfügungstag']
     assert past_table.next_sibling.string == \
            "Die Vorlesungszeit wird unterbrochen vom 24. Dezember bis einschließlich 6. Januar, vom Gründonnerstag " \
            "bis einschließlich Dienstag nach Ostern sowie am Dienstag nach Pfingsten!"
@@ -263,7 +265,7 @@ def get_semester_dates() -> List[semester]:
     for semester_tr in table.find("tbody").find_all("tr") + past_table.find("tbody").find_all("tr"):
         name, *dates = semester_tr.strings
         try:
-            dates = [dtm.datetime.strptime(d, "%d.%m.%Y").date() for d in dates]
+            dates = [dtm.datetime.strptime(d.replace('*', ''), "%d.%m.%Y").date() for d in dates]
         except ValueError:
             continue
         if len(dates) >= 3:
