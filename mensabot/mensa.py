@@ -252,14 +252,10 @@ def get_semester_dates() -> List[semester]:
     table = soup.find("main").find("table", class_="contenttable")
     assert sanitize_semester_dates_table_heads(list(table.find("thead").strings)) == ['Semester', 'Beginn', 'Ende',
                                                  'Verfügungstag']
-    assert table.next_sibling.string == "Vorlesungsfrei:"
 
     past_table = soup.find("main").find("div", class_="collapse").find("table", class_="contenttable")
     assert sanitize_semester_dates_table_heads(list(past_table.find("thead").strings)) == ['Semester', 'Beginn', 'Ende',
                                                       'Verfügungstag']
-    assert past_table.next_sibling.string == \
-           "Die Vorlesungszeit wird unterbrochen vom 24. Dezember bis einschließlich 6. Januar, vom Gründonnerstag " \
-           "bis einschließlich Dienstag nach Ostern sowie am Dienstag nach Pfingsten!"
 
     semesters = []
     for semester_tr in table.find("tbody").find_all("tr") + past_table.find("tbody").find_all("tr"):
