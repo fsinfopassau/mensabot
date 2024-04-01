@@ -13,7 +13,7 @@ from mensabot.bot.util import ensure_date
 from mensabot.mensa import LOCATIONS, NOT_OPEN, dish, get_menu_day, get_next_open, get_opening_times, is_holiday
 from mensabot.parse import LANG
 
-KETCHUP = ["kartoffel", "potato", "pommes", "twister", "kroketten", "rösti", "schnitzel", "cordon", "burger", "fries"]
+REMOULADE = ["kartoffel", "potato", "pommes", "twister", "kroketten", "rösti", "schnitzel", "cordon", "burger", "fries", "fish", "fisch", "forelle", "seelachs"]
 
 JINJA2_ENV = SandboxedEnvironment(
     loader=PackageLoader('mensabot', 'templates'),
@@ -74,9 +74,9 @@ def filter_zusatz_not(list: List[dish], zusatz):
     return (v for v in list if not any(v.zusatz[z] for z in zusatz))
 
 
-@jinja2_filter("ketchup")
-def filter_ketchup(list: List[dish]):
-    return (v for v in list if any(s in v.name.lower() for s in KETCHUP))
+@jinja2_filter("remoulade")
+def filter_remoulade(list: List[dish]):
+    return (v for v in list if any(s in v.name.lower() for s in REMOULADE))
 
 
 def get_mensa_formatted(dt, template=None, locale=None, price_category="stud", now=None):

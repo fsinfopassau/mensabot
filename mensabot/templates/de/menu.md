@@ -9,7 +9,7 @@ Speisekarte für Mittagsmensa {{ utils.date(date, now, locale) }}:
 {% else %}
 Kein Speiseplan für {{ utils.date(date, now, locale) }} verfügbar!
 {% endfor %}
-{% if menu|ketchup()|list() %}
+{% if menu|remoulade()|list() %}
 
-🍅 Ketchup für {% for dish in menu|ketchup() %}{{ dish.name }}{% if not loop.last %}, {% endif %}{% endfor %} mitnehmen.
+🥚 Remoulade für {% for dish in menu|remoulade() %}{{ dish.name }}{% if not loop.last %}, {% endif %}{% endfor %} mitnehmen.
 {% endif %}

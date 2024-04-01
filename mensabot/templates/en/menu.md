@@ -9,7 +9,7 @@ Menu for lunch mensa {{ utils.date(date, now, locale) }}:
 {% else %}
 No menu for {{ utils.date(date, now, locale) }} available!
 {% endfor %}
-{% if menu|ketchup()|list() %}
+{% if menu|remoulade()|list() %}
 
-🍅 Take ketchup for {% for dish in menu|ketchup() %}{{ dish.name }}{% if not loop.last %}, {% endif %}{% endfor %}.
+🥚 Take remoulade for {% for dish in menu|remoulade() %}{{ dish.name }}{% if not loop.last %}, {% endif %}{% endfor %}.
 {% endif %}

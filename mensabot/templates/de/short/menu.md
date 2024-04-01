@@ -15,7 +15,7 @@ Kein Speiseplan für {{ utils.date(date, now, locale) }} verfügbar!
 {{ utils.icon_dish(dish.warengruppe[0]) }} *{{ dish.name }}* {{ utils.icons_kennz(dish.kennz) }}
 {% endif %}
 {% endfor %}
-{% if menu|ketchup()|list() %}
+{% if menu|remoulade()|list() %}
 
-🍅 Ketchup mitnehmen.
+🥚 Remoulade mitnehmen.
 {% endif %}
