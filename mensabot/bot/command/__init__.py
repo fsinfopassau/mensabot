@@ -43,15 +43,6 @@ def help(update, ctx):
         "For configuration use /get and /set.")
 
 
-@ComHandlerFunc("status")
-def status(update, ctx):
-    from mensabot.bot.api import health
-
-    ctx.bot.sendMessage(chat_id=update.message.chat_id, text= \
-        ("Everything is fine! 😊\n" if health.check(request=False)[1] == health.success_status else
-         "Uhoh. There seem to be some problems! 😕\n"))
-
-
 @ComHandlerFunc("abbr")
 def abbr(update, ctx):
     args = get_args(update)

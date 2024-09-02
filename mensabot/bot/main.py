@@ -1,6 +1,5 @@
 import logging
 
-from mensabot.bot.api import start_app
 from mensabot.bot.command import init_commands
 from mensabot.bot.diff_listener import install_listener
 from mensabot.bot.ext import updater
@@ -13,9 +12,6 @@ logger = logging.getLogger("mensabot.bot")
 
 
 def main():
-    if ENABLE_WEBSERVER:
-        logger.info("Starting web server")
-        start_app()
     logger.info("Starting telegram bot")
     init_commands()
     install_listener()

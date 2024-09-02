@@ -12,6 +12,3 @@ LOG_CONFIG = "./logging.yaml"
 
 # Path of the menu archive directory
 MENU_STORE = "./menustore"
-
-# Whether status information should be made available through a webserver
-ENABLE_WEBSERVER = False
