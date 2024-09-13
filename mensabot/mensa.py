@@ -236,7 +236,9 @@ def is_holiday(dt: dtm.datetime = None) -> bool:
     return current_semester.end < dt or any(start <= dt <= end for start, end in current_semester.holidays)
 
 def sanitize_semester_dates_table_heads(strings: List[str]) -> List[str]:
-    return [ x.replace('\xad', '').replace('\t', '').split(' ')[0] for x in strings ][0:4]
+    strings = [x.replace('\xad', '').replace('\t', '').split(' ')[0] for x in strings]
+    strings = [x for x in strings if x != '']
+    return strings[0:4]
 
 @functools.lru_cache(maxsize=1)
 def get_semester_dates() -> List[semester]:
@@ -249,20 +251,21 @@ def get_semester_dates() -> List[semester]:
     r = requests.get(DATES_URL)
     r.raise_for_status()
     soup = BeautifulSoup(r.text, 'html.parser')
-    table = soup.find("main").find("table", class_="contenttable")
+    table = soup.find("div", class_="upa_main_content").find("table", class_="contenttable")
     assert sanitize_semester_dates_table_heads(list(table.find("thead").strings)) == ['Semester', 'Beginn', 'Ende',
                                                  'Verfügungstag']
 
-    past_table = soup.find("main").find("div", class_="collapse").find("table", class_="contenttable")
+    past_table = soup.find("div", class_="upa_main_content").find("div", class_="collapse").find("table", class_="contenttable")
     assert sanitize_semester_dates_table_heads(list(past_table.find("thead").strings)) == ['Semester', 'Beginn', 'Ende',
                                                       'Verfügungstag']
 
     semesters = []
     for semester_tr in table.find("tbody").find_all("tr") + past_table.find("tbody").find_all("tr"):
-        name, *dates = semester_tr.strings
+        name, *dates = [s for s in semester_tr.strings if s.strip() != '']
         try:
             dates = [dtm.datetime.strptime(d.replace('*', ''), "%d.%m.%Y").date() for d in dates]
-        except ValueError:
+        except ValueError as e:
+            print(e)
             continue
         if len(dates) >= 3:
             start, end, bruecke = dates
